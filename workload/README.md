@@ -147,7 +147,7 @@ Using bash run
 - az extension add --name aks-preview (for cluster autoscaler)
 - az extension update --name aks-preview 
 - apply the workload: sh /scripts/deploy-azure-workload.sh enter any value for GITHUBTOKEN
-- az aks get-credentials -n aks-kedascalerapp-dev -g <resource_group>
+- az aks get-credentials -n <clustername> -g <resource_group>
 
 ### Check system is running correctly
 
@@ -172,9 +172,9 @@ If using privateNetworking, app one and two are accessible on the service.beta.k
 
 ```
 az vm create \
-  --resource-group rg-kedascalerapp-dev \
+  --resource-group rg-<yourappname>-dev \
   --name test-vm \
-  --vnet-name vnet-kedascalerapp-dev \
+  --vnet-name vnet-<yourappname>-dev \
   --subnet virtualmachines \
   --image Ubuntu2404 \
   --size Standard_B1s \
@@ -184,7 +184,7 @@ az vm create \
 
 ```
 az vm show -d \
-  --resource-group rg-kedascalerapp-dev \
+  --resource-group rg-<yourappname>-dev \
   --name test-vm \
   --query publicIps -o tsv
 ssh azureuser@<ip>
@@ -241,6 +241,10 @@ There are sample dashboards on the project root [README.md](../README.md) to vie
 ### Remove workload and dependencies (not infra)
 
 /scripts/undeploy-azure-workload.sh
+
+### Making changes to the chart / app
+
+You can update the chart / values and update via the script: /scripts/update-azure-workload.sh
 
 ## Workload Troubleshooting
 

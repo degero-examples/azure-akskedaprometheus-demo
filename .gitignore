@@ -1,5 +1,5 @@
-workload/.env.localdev
-workload/.env.azure
+.env.localdev
+.env.azure
 infra/default.bicepparam
 **/charts/*.tgz
 Chart.lock
