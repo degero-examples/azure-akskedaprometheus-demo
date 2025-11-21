@@ -1,0 +1,54 @@
+# ConfigMap used by nginx deployments: app-one, app-two
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+data:
+  status.conf: |-
+    server {
+      listen 8080;
+
+      location /stub_status {
+        stub_status;
+      }
+
+    }
+
+  nginx.conf: |
+    user nginx;
+    worker_processes auto;
+    error_log /var/log/nginx/error.log warn;
+    pid /var/run/nginx.pid;
+
+    events {
+        worker_connections 1024;
+    }
+
+    http {
+        include /etc/nginx/mime.types;
+        default_type application/octet-stream;
+
+        # Default server
+        server {
+            listen 80;
+            server_name _;
+            
+            location / {
+                root /usr/share/nginx/html;
+                index index.html index.htm;
+            }
+
+            location /health {
+                access_log off;
+                return 200 "healthy\n";
+                add_header Content-Type text/plain;
+            }
+
+            error_page 500 502 503 504 /50x.html;
+            location = /50x.html {
+                root /usr/share/nginx/html;
+            }
+        }
+
+        include /etc/nginx/conf.d/*.conf;
+    }

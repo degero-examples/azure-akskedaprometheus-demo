@@ -1,0 +1,11 @@
+apiVersion: v2
+name: ingress-nginx-basic
+description: Custom baseoc NGINX Ingress Controller for non-prod environments with metrics-per-host disabled to allow metrics on IP only platform
+type: application
+version: 1.0.0
+appVersion: "1.11.1"
+
+dependencies:
+  - name: ingress-nginx
+    version: "4.11.3"
+    repository: https://kubernetes.github.io/ingress-nginx

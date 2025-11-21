@@ -1,0 +1,37 @@
+# values.yaml - Custom values for non-prod NGINX Ingress Controller
+ingress-nginx:
+  controller:
+    # Metrics configuration with per-host disabled
+    metrics:
+      enabled: true
+      service:
+        annotations:
+          prometheus.io/scrape: "true"
+          prometheus.io/port: "10254"
+        serviceMonitor:
+          enabled: false  # to gather metrics using std servicemonitor (this uses azure monitor)
+    
+    extraArgs:
+      # Critical do not use in PROD: to allow IP based requests metrics gathering as AKS app routing doesnot wllow this config
+      metrics-per-host: "false"
+    
+    # Service configuration
+    service:
+      type: LoadBalancer
+      externalTrafficPolicy: Local
+      annotations:
+        service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: /healthz
+      # For non-prod, you might want an internal LoadBalancer
+      # Uncomment below for Azure internal LB:
+      # annotations:
+      #   service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+    
+    # IngressClass configuration
+    ingressClassResource:
+      name: ingress-nginx-basic
+      enabled: true
+      default: true  # Make this the default ingress class
+      controllerValue: "k8s.io/ingress-nginx-basic"
+    
+    admissionWebhooks:
+      enabled: false

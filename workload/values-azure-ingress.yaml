@@ -1,0 +1,26 @@
+platform: azure
+privateNetwork:
+  enabled: false
+kubernetesClusterDomain: cluster.local
+pvc:
+  accessModes: ReadWriteMany
+  storageClass: azurefile-csi
+  storageRequest: 2Gi
+pv:
+  provisioner: file.csi.azure.com
+  accessModes: ReadWriteMany
+  storageClass: azurefile-csi
+  storageCapacity: 2Gi
+kedaPrometheusAccess:
+  serverAddress: # set via params
+  authEnabled: true
+ingress:
+  aksManaged: false # When false apply the nginx-ingress-controller-azure chart in this repo
+  ingressClassName: ingress-nginx-basic # set to webapprouting.kubernetes.azure.com when aksManaged (AKS app routing addon) is true
+  host: # only required when app routing addon not used
+appOne:
+  # For nginx ingress controller ENV when the above privateNetwork.enabled=false
+  scaleQuery: "sum(rate(nginx_ingress_controller_requests{exported_service=\"app-one\"}[1m])) / scalar(count(kube_pod_info{namespace=\"default\",pod=~\"app-one.*\"}))" 
+appTwo:
+  # For nginx ingress controller ENV when the above privateNetwork.enabled=false
+  scaleQuery: "sum(rate(nginx_ingress_controller_requests{exported_service=\"app-two\"}[1m])) / scalar(count(kube_pod_info{namespace=\"default\",pod=~\"app-two.*\"}))"

@@ -1,0 +1,40 @@
+using './main.bicep'
+param env = 'dev'
+param appname = 'kedascalerapp' // naming for all resources eg vnet-<appname>-<env>
+param enablePrivateNetwork = false // set true To setup infrastructure for a private VNET to access the application rather than nginx ingress
+param enableGrafana = false
+// Add Users to access grafana if enabled
+param grafanaUsers = [ 
+  // { name: '', role: 'Grafana Admin', principalId: '', objectType: 'User'} 
+  // { name: '', role: 'Grafana Editor', principalId: '', objectType: 'User'} 
+  // { name: '', role: 'Grafana Viewer', principalId: '', objectType: 'User'}
+  // { name: '', role: 'Grafana Limited Viewer', principalId: '', objectType: 'User'}
+]
+param enableAKSAppRoutingAddon = false
+param enableContainerRegistry = false
+param clusterSKU = 'Free' // For prod ensure using at least standard
+param agentPoolMaxCount = 2
+// This is the lowest spec/cost VM that supports ephemeral OS disks, be sure to check you have enough vCPU quota
+param agentPoolVMSize = 'Standard_B2s' 
+param nodePools = [
+  {
+  name: 'appone'
+    sku: 'Standard_B2s'
+    count: 0
+    minCount: 0
+    maxCount: 2
+    nodeLabels: {
+      app: 'app-one'
+    }
+  }
+  { 
+    name: 'apptwo'
+    sku: 'Standard_B2s'
+    count: 0
+    minCount: 0
+    maxCount: 2
+    nodeLabels: {
+      app: 'app-two'
+    }
+  }
+]

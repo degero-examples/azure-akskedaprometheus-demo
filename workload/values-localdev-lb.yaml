@@ -1,0 +1,32 @@
+platform: local
+privateNetwork:
+  enabled: true
+pv:
+  storageCapacity: 2Gi
+  storageClass: ""
+  accessModes: ReadOnlyMany
+  provisioner: ""
+pvc:
+  storageRequest: 2Gi
+  accessModes: ReadOnlyMany
+  storageClass: ""
+kedaPrometheusAccess:
+  serverAddress: "http://prometheus.monitoring.svc.cluster.local:9090" 
+appOne:
+  nodeSelector:
+    app: app-one 
+  # For using loadbalancer when the above privateNetwork.enabled=true
+  scaleQuery: "sum(rate(nginx_http_requests_total{service=\"app-one\"}[1m])) / scalar(count(kube_pod_info{namespace=\"default\",pod=~\"app-one.*\"}))" 
+appTwo:
+  nodeSelector:
+    app: app-two
+  # For using loadbalancer when the above privateNetwork.enabled=true
+  scaleQuery: "sum(rate(nginx_http_requests_total{service=\"app-two\"}[1m])) / scalar(count(kube_pod_info{namespace=\"default\",pod=~\"app-two.*\"}))"
+lbAppOne:
+  ports:
+  - port: 8080
+    targetPort: 80
+lbAppTwo:
+  ports:
+  - port: 8081
+    targetPort: 80

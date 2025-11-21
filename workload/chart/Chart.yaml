@@ -1,0 +1,6 @@
+apiVersion: v2
+name: kedascalerapp
+description: Demo application to showcase KEDA scaling integrated with Azure
+type: application
+version: 1.0.0
+appVersion: "1.0.0"

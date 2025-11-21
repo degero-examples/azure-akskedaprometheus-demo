@@ -1,0 +1,32 @@
+platform: azure
+privateNetwork:
+  enabled: true
+kubernetesClusterDomain: cluster.local
+lbAppOne:
+  annotations: 
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+    service.beta.kubernetes.io/azure-load-balancer-internal-subnet: "aks-private-ingress"
+    service.beta.kubernetes.io/azure-load-balancer-ipv4: 10.241.0.5
+lbAppTwo:
+  annotations: 
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+    service.beta.kubernetes.io/azure-load-balancer-internal-subnet: "aks-private-ingress"
+    service.beta.kubernetes.io/azure-load-balancer-ipv4: 10.241.0.6
+pvc:
+  accessModes: ReadWriteMany
+  storageClass: azurefile-csi
+  storageRequest: 2Gi
+pv:
+  provisioner: file.csi.azure.com
+  accessModes: ReadWriteMany
+  storageClass: azurefile-csi
+  storageCapacity: 2Gi
+kedaPrometheusAccess:
+  serverAddress: # set via params
+  authEnabled: true
+appOne:
+  # For internal load balanced ENV when the above privateNetwork.enabled=true
+  scaleQuery: "sum(rate(nginx_http_requests_total{service=\"app-one\"}[1m])) / scalar(count(kube_pod_info{namespace=\"default\",pod=~\"app-one\"}))" 
+appTwo:
+  # For internal load balanced ENV when the above privateNetwork.enabled=true
+  scaleQuery: "sum(rate(nginx_http_requests_total{service=\"app-two\"}[1m])) / scalar(count(kube_pod_info{namespace=\"default\",pod=~\"app-two\"}))" 

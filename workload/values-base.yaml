@@ -1,0 +1,64 @@
+privateNetwork:
+  enabled: false
+volumes:
+  - name: "app-one"
+    shareName: "sh-aks-kedascalerapp-appone-dev"
+  - name: "app-two"
+    shareName: "sh-aks-kedascalerapp-apptwo-dev"
+githubTokenSecret:
+  token: # Just for demonstrations to set a common secret pods may need
+azureFilesSecret:
+  accountName: # To set as env var on chart apply
+  accountKey: # To set as env var on chart apply
+appOne:
+  image:
+    repository: nginx
+    tag: 1.29.1
+  imagePullPolicy: IfNotPresent
+  enableAffinity: true
+  replicas: 1
+  minReplicaCount: 1
+  maxReplicaCount: 2
+  cooldownPeriod: 150 # in seconds
+  scaleThreshold: "1.2"
+  resources:
+    # Enable these based on your workloads requirements
+    # limits:
+    #   cpu: 500M
+    #   memory: 256Mi
+    # requests:
+    #   cpu: 100M
+    #   memory: 128Mi
+appTwo:
+  image:
+    repository: nginx
+    tag: 1.29.1
+  imagePullPolicy: IfNotPresent
+  enableAffinity: true
+  replicas: 1
+  minReplicaCount: 1
+  maxReplicaCount: 2
+  cooldownPeriod: 150 # in seconds
+  scaleThreshold: "1.2"
+  resources:
+    # Enable these based on your workloads requirements
+    # limits:
+    #   cpu: 500M
+    #   memory: 256Mi
+    # requests:
+    #   cpu: 100M
+    #   memory: 128Mi
+kubernetesClusterDomain: cluster.local
+# Below is applied when value privateNetwork.enabled is true
+lbAppOne:
+  ports:
+  - port: 80
+    targetPort: 80
+lbAppTwo:
+  ports:
+  - port: 80
+    targetPort: 80
+kedaPrometheusAccess:
+  authEnabled: false
+workloadIdentity:
+  clientId: # To set as env var on chart apply

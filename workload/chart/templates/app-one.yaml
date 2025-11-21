@@ -1,0 +1,150 @@
+{{- if eq .Values.privateNetwork.enabled false }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-one
+spec:
+  selector:
+    app: app-one
+  ports:
+  - port: 80
+    targetPort: 80
+---
+{{- end }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-one
+  labels:
+    app: app-one
+  annotations:
+  {{- if .Values.privateNetwork.enabled }}
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9113"
+  {{- end }}
+spec:
+  replicas: {{ .Values.appOne.replicas }}
+  selector:
+    matchLabels:
+      app: app-one
+  template:
+    metadata:
+      labels:
+        app: app-one
+      annotations:
+      {{- if .Values.privateNetwork.enabled }}
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9113"
+      {{- end }}
+    spec:
+      {{- if .Values.appOne.enableAffinity }}
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - app-one
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - app-one
+            topologyKey: kubernetes.io/hostname
+      {{- end }}
+      containers:
+      - name: nginx
+        ports:
+        - name: http
+          containerPort: 80
+          protocol: TCP
+        env:
+        - name: GITHUB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: token
+              name: github-token-secret
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ quote .Values.kubernetesClusterDomain }}
+        - name: OTEL_SERVICE_NAME
+          value: "app-one"
+        - name: OTEL_RESOURCE_ATTRIBUTES
+          value: "service.name=app-one,service.version={{ .Chart.AppVersion }}"
+        image: {{ .Values.appOne.image.repository }}:{{ .Values.appOne.image.tag | default .Chart.AppVersion }}
+        imagePullPolicy: {{ .Values.appOne.imagePullPolicy }}
+        resources: {{- toYaml .Values.appOne.resources | nindent 10 }}
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 30
+          failureThreshold: 3
+          timeoutSeconds: 3
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 3
+          failureThreshold: 10
+          timeoutSeconds: 3
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 3
+          failureThreshold: 10
+          timeoutSeconds: 3
+          periodSeconds: 10
+        volumeMounts:
+        - mountPath: /usr/share/nginx/html
+          name: html
+          readOnly: true
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+          readOnly: true
+        - name: nginx-config
+          mountPath: /etc/nginx/conf.d/status.conf
+          subPath: status.conf
+          readOnly: true
+        - mountPath: /var/log/nginx
+          name: log
+      {{- if .Values.privateNetwork.enabled }}
+      - name: prometheus-exporter
+        image: nginx/nginx-prometheus-exporter:0.9.0
+        imagePullPolicy: {{ .Values.appTwo.imagePullPolicy }}
+        args: 
+          - "--nginx.scrape-uri=http://127.0.0.1:8080/stub_status"
+          - "--prometheus.const-labels=service=app-one"
+        ports:
+        - name: metrics
+          containerPort: 9113
+      {{- end }}
+      {{- if .Values.appOne.nodeSelector }}
+      nodeSelector: {{- toYaml .Values.appOne.nodeSelector | nindent 8 }}
+      {{- end }}
+      tolerations:
+      - effect: NoSchedule
+        key: app
+        operator: Equal
+        value: app-one
+      volumes:
+      - name: html
+        persistentVolumeClaim:
+          claimName: pvc-kedascalerapp-app-one
+      - name: log
+      - name: nginx-config
+        configMap:
+          name: nginx-config
+          items:
+          - key: nginx.conf
+            path: nginx.conf
+          - key: status.conf
+            path: status.conf

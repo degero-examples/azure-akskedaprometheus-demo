@@ -1,0 +1,18 @@
+{{- range $volume := .Values.volumes }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-kedascalerapp-{{ $volume.name }}
+spec:
+  accessModes:
+    - {{ $.Values.pvc.accessModes }}
+  resources:
+    requests:
+      storage: {{ $.Values.pvc.storageRequest | quote }}
+  storageClassName: {{ $.Values.pvc.storageClass | quote }}
+  volumeName: pv-azurefile-kedascalerapp-{{ $volume.name }}
+  selector:
+    matchLabels:
+      app: app-{{ $volume.name }}
+{{- end }}

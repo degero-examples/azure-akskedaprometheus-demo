@@ -1,0 +1,59 @@
+
+{{- if .Values.kedaPrometheusAccess.authEnabled}}
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: azure-managed-prometheus-trigger-auth
+spec:
+  podIdentity:
+      provider: azure-workload
+---
+{{- end }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: app-one-request-scaler
+spec:
+  scaleTargetRef:
+    name: app-one
+  minReplicaCount: {{ .Values.appOne.minReplicaCount }}
+  maxReplicaCount: {{ .Values.appOne.maxReplicaCount }}
+  cooldownPeriod: {{ .Values.appOne.cooldownPeriod }}
+  advanced:                                                 
+    restoreToOriginalReplicaCount: true
+  triggers:
+  - type: prometheus
+    metadata:
+      serverAddress: {{ .Values.kedaPrometheusAccess.serverAddress | quote }}
+      metricName: http_requests_total
+      query: {{ .Values.appOne.scaleQuery }} # Set query to return a vector/scalar single element response
+      threshold: {{ .Values.appOne.scaleThreshold | quote }}
+{{- if .Values.kedaPrometheusAccess.authEnabled}}
+    authenticationRef:
+      name: azure-managed-prometheus-trigger-auth
+{{- end }}
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: app-two-request-scaler
+spec:
+  scaleTargetRef:
+    name: app-two
+  minReplicaCount: {{ .Values.appTwo.minReplicaCount }}
+  maxReplicaCount: {{ .Values.appTwo.maxReplicaCount }}
+  cooldownPeriod: {{ .Values.appTwo.cooldownPeriod }}
+  advanced:                                                 
+    restoreToOriginalReplicaCount: true
+  triggers:
+  - type: prometheus
+    metadata:
+      serverAddress: {{ .Values.kedaPrometheusAccess.serverAddress | quote }}
+      metricName: http_requests_total
+      query: {{ .Values.appTwo.scaleQuery }} # Set query to return a vector/scalar single element response
+      threshold: {{ .Values.appOne.scaleThreshold | quote }}
+{{- if .Values.kedaPrometheusAccess.authEnabled}}
+    authenticationRef:
+      name: azure-managed-prometheus-trigger-auth
+{{- end }}
+    

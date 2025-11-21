@@ -1,0 +1,40 @@
+{{- range $volume := .Values.volumes }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  annotations:
+    pv.kubernetes.io/provisioned-by: {{ $.Values.pv.provisioner }}
+  name: pv-azurefile-kedascalerapp-{{ $volume.name }}
+  labels:
+    app: app-{{ $volume.name }}
+spec:
+  capacity:
+    storage: {{ $.Values.pv.storageCapacity }}
+  accessModes:
+    - {{ $.Values.pv.accessModes }}
+  storageClassName: {{ $.Values.pv.storageClass }}
+  {{- if eq $.Values.platform "azure" }}
+  csi:
+    driver: {{ $.Values.pv.provisioner }}
+    volumeHandle: {{ "mychart.name" }}#{{ $volume.shareName }}
+    volumeAttributes:
+      shareName: {{ $volume.shareName }}
+    nodeStageSecretRef:
+      name: azurefiles-secret
+      namespace: default
+  mountOptions:
+    - dir_mode=0777
+    - file_mode=0777
+    - uid=0
+    - gid=0
+    - mfsymlinks
+    - cache=strict
+    - nosharesock
+    - nobrl  # disable sending byte range lock requests to the server and for applications which have challenges with posix locks
+  {{- else if eq $.Values.platform "local" }}
+  hostPath:
+    path: /data/{{ $volume.name }}  # This matches the containerPath in kind config
+    type: DirectoryOrCreate
+  {{- end }}
+{{- end }}
