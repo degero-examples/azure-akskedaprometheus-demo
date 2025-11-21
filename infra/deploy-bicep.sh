@@ -25,7 +25,7 @@ az deployment group create -g "$RESOURCE_GROUP" --template-file main.bicep --par
 
 # Get all output names
 output_names=$(az deployment group show \
-  --resource-group rg-kedascalerapp-dev \
+  --resource-group $RESOURCE_GROUP \
   --name main \
   --query 'properties.outputs | keys(@)' \
   -o tsv)
@@ -40,7 +40,7 @@ EOF
 # Loop through each output and get its value
 for output_name in $output_names; do
   output_value=$(az deployment group show \
-    --resource-group rg-kedascalerapp-dev \
+    --resource-group $RESOURCE_GROUP \
     --name main \
     --query "properties.outputs.$output_name.value" \
     -o tsv)
