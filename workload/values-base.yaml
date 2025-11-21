@@ -2,9 +2,9 @@ privateNetwork:
   enabled: false
 volumes:
   - name: "app-one"
-    shareName: "sh-aks-kedascalerapp-appone-dev"
+    shareName: # To set as env var on chart apply
   - name: "app-two"
-    shareName: "sh-aks-kedascalerapp-apptwo-dev"
+    shareName: # To set as env var on chart apply
 githubTokenSecret:
   token: # Just for demonstrations to set a common secret pods may need
 azureFilesSecret:
