@@ -22,6 +22,6 @@ helm upgrade --install $APPNAME ../workload/chart --namespace default  --create-
  --set kedaPrometheusAccess.serverAddress=$PROMETHEUSQUERYENDPOINT --set privateNetwork.enabled=$PRIVATE_NETWORK \
  --set ingress.ingressClassName=$ingress_class --set ingress.aksManaged=$USE_AKS_APP_ROUTING_ADDON \
  --set ingress.host=$INGRESS_HOST --set volumes[0].shareName="$AZFILESSHARE_APPONE" \
- --set volumes[1].shareName="$AZFILESSHARE_APPONE"
+ --set volumes[1].shareName="$AZFILESSHARE_APPTWO"
 
 echo -e "${GREEN}=== Workload deployment completed successfully! ===${NC}"
