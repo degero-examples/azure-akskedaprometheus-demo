@@ -1,8 +1,8 @@
 # Kubernetes KEDA scaled demo application
 
-This demo K8S app is composed of two apps (app-one, app-two) both running nginx serving custom html pages for each located in the volume-data folder.  The deployment is configurable to use on a private network with load balancer or using a nginx ingress control to access the applications. There are other configuation options covered below to showcase some features to make use of.
+This demo K8S app is composed of two apps (app-one, app-two) both running nginx serving custom html pages for each located in the /workload/volume-data folder.  The deployment is configurable to use on a private network with load balancer or using a nginx ingress control to access the applications. There are other configuation options covered below to showcase some features to make use of.
 
-To not incur any expenses while testing the app it can be run locally using Docker and KIND covered below.
+You have the option to deploy locally (covered below) using Docker and KIND to test your workload and scaling. 
 
 ## Prereqs
 
@@ -244,37 +244,47 @@ There are sample dashboards on the project root [README.md](../README.md) to vie
 
 ### Making changes to the chart / app
 
-You can update the chart / values and update via the script: /scripts/update-azure-workload.sh
+You can update the chart / values and deploy the changes via the script: /scripts/update-azure-workload.sh
 
 ## Workload Troubleshooting
 
 ### Check autoscaler is running
 
 Check keda can get to the metrics and apply the ScaledObjects
+```
 kubectl logs -f -n keda -l app=keda-operator
+```
 
 Check the workload identity is correctly setup:
+```
 kubectl describe po $KEDA_POD_ID -n keda
+```
 
 Check events from HPA for errors
+
+```
 kubectl events --for hpa/keda-hpa-app-one-request-scaler -w
 kubectl events --for hpa/keda-hpa-app-two-request-scaler -w
+```
 
 ### Check ingress controller
 
+```
 kubectl get ingress (should show ingress with a host/ip)
 kubectl get pod -n ingress-nginx (should show an ingress controller as ready)
 kubectl logs -l app.kubernetes.io/component=controller -n ingress-nginx (check controller logs for errors)
+```
 
 ### Internal load balancer IPs (when using privateNetwork option)
 
 There may be permissions missing fron NetworkContributor for the aks managed identity
 
-kubectl get service
-confirm they have external IPs
 
+```
+kubectl get service (confirm they have external IPs)
 kubectl run test-connectivity --rm -it --image=busybox -- sh
-> wget -O- http://<pod-ip>:<pod-port> (to test different pods)
+wget -O- http://<pod-ip>:<pod-port> (to test different pods)
+```
 
 ## Azure Environment Troubleshooting
 
