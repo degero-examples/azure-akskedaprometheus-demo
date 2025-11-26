@@ -3,3 +3,4 @@
 infra/default.bicepparam
 **/charts/*.tgz
 Chart.lock
+.azure

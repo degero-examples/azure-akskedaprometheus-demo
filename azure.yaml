@@ -1,0 +1,24 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: aks-keda-demo
+metadata:
+  template: aks-keda-demo@0.0.1
+workflows:
+  up: 
+    steps:
+      - azd: provision
+hooks:
+  preprovision:
+    continueOnError: false
+    interactive: true
+    shell: sh
+    run: chmod +x azd-hooks/preprovision.sh && azd-hooks/preprovision.sh
+  postprovision:
+    continueOnError: false
+    interactive: true
+    shell: sh
+    run: chmod +x azd-hooks/preprovision.sh && azd-hooks/postprovision.sh
+infra:
+  provider: bicep
+  path: infra
+  module: main-azd
