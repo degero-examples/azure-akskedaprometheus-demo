@@ -1,11 +1,14 @@
 targetScope = 'subscription'
 
-@allowed(['dev','staging','uat','test','devtest','prod'])
 param environmentName string 
 param location string 
 
-@description('A name for you app to use resouce naming convention of <resourcetypecode>-<appname>-<>')
+@description('A name for you app to use resouce naming convention of <resourcetypecode>-<appname>-<envtype>')
 param appname string
+
+@allowed(['dev', 'devtest','stage','test','uat','prod'])
+@description('A name for the env type to use resouce naming convention of <resourcetypecode>-<appname>-<envtype>')
+param envType string
 
 @description('Ingress via VNET with internal load balancer')
 param enablePrivateNetwork bool
@@ -39,15 +42,13 @@ param nodePools array
 @description('Array of userIds and Roles to access Grafana')
 param grafanaUsers array
 
-var resourceGroupName = 'rg-${appname}-${environmentName}'
-
 var tags object = {
   environment: environmentName
   appname: appname
 }
 
 resource rg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
-  name: resourceGroupName
+  name: environmentName
   location: location
   tags: {
     ...tags 
@@ -62,7 +63,7 @@ module main 'main.bicep' = {
     agentPoolVMSize: vmSize
     grafanaUsers: grafanaUsers
     appname: appname
-    env: environmentName
+    env: envType
     enablePrivateNetwork: enablePrivateNetwork
     enableGrafana: enableGrafana
     enableContainerRegistry: enableContainerRegistry
@@ -76,15 +77,15 @@ module main 'main.bicep' = {
 
 output AZURE_TENANT_ID string = tenant().tenantId
 output APPNAME string = appname
-output ENV string = environmentName
+output ENV string = envType
 output CLUSTERNAME string = main.outputs.clustername
 output PRIVATE_NETWORK bool = main.outputs.private_network
 output USE_AKS_APP_ROUTING_ADDON bool = main.outputs.use_aks_app_routing_addon
 output AZFILESACNAME string = main.outputs.azfilesacname
 output AZFILESSHARE_APPONE string = main.outputs.azfilesshare_appone
 output AZFILESSHARE_APPTWO string = main.outputs.azfilesshare_apptwo
-output RESOURCE_GROUP string = resourceGroupName
-output AZURE_RESOURCE_GROUP string = resourceGroupName
+output RESOURCE_GROUP string = environmentName
+output AZURE_RESOURCE_GROUP string = environmentName
 output KEDAUSERASSIGNEDIDENTITYCLIENTID string = main.outputs.kedaUserAssignedIdentityClientId
 output PROMETHEUSQUERYENDPOINT string = main.outputs.prometheusQueryEndpoint
 output GRAFANARESOURCENAME string = main.outputs.grafanaResourceName

@@ -112,6 +112,7 @@ azd up
 
 To access the app and use, see workload [README.md](./workload/README.md#check-system-is-running-correctly)
 
+You can also use /scripts to update the workload or undeploy from AKS
 
 #### Manual deployment scripts
 
