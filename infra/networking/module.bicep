@@ -14,6 +14,8 @@ module nsg './nsg.bicep' = {
 module vnet './vnet.bicep' = {
   name: 'vnet'
   params: {
+    appname: appname
+    env: env
     name: 'vnet-${appname}-${env}'
     tags: tags
     networkAddressSpace: '10.240.0.0/12'

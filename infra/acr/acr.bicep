@@ -6,6 +6,13 @@ param tags object
   'Premium'
 ])
 param sku string
+param appname string
+param env string
+
+var roleIds = loadJsonContent('../_defs/roles.json')
+resource aksIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2025-01-31-preview' existing = {
+  name: 'mi-kubelet-aks-${appname}-${env}'
+}
 
 module acr 'br/public:avm/res/container-registry/registry:0.9.3' = {
   name: 'acr'
@@ -14,6 +21,13 @@ module acr 'br/public:avm/res/container-registry/registry:0.9.3' = {
     location: resourceGroup().location
     tags: tags
     acrSku: sku
+    roleAssignments: [
+      {
+        roleDefinitionIdOrName: roleIds.Containers.AcrPull
+        principalId: aksIdentity.properties.principalId
+        principalType: 'ServicePrincipal'
+      }
+    ]
     acrAdminUserEnabled: true
     quarantinePolicyStatus: 'disabled'
     trustPolicyStatus: 'disabled'

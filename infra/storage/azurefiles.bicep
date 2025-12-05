@@ -11,21 +11,23 @@ param storageAccountSku string = 'Standard_LRS'
 var location = resourceGroup().location
 var isPremiumTier = contains(storageAccountSku, 'Premium') 
 
-resource storageAccount 'Microsoft.Storage/storageAccounts@2025-01-01' = {
-  name: storageAccountName
-  location: location
-  kind: isPremiumTier ? 'FileStorage': 'StorageV2'  // PAYG files share for Standard tier
-  sku: {
-    name: storageAccountSku
+module storageAccountModule 'br/public:avm/res/storage/storage-account:0.29.0' = {
+  name: 'storageAccount'
+  params: {
+    name: storageAccountName
+    location: location
+    tags: tags
+    kind: isPremiumTier ? 'FileStorage': 'StorageV2'  // PAYG files share for Standard tier
+    skuName:storageAccountSku
+    publicNetworkAccess: 'Enabled' // Not recommended for PROD use
+    minimumTlsVersion: 'TLS1_2'
+    largeFileSharesState: 'Enabled'
+    accessTier: isPremiumTier ? null : 'Hot'
   }
-  properties: union({
-      publicNetworkAccess: 'Enabled' // Not recommended for PROD use
-      minimumTlsVersion: 'TLS1_2'
-      largeFileSharesState: 'Enabled'
-    }, isPremiumTier ? {} : {
-    accessTier: 'Hot'
-  })
-  tags: tags
+}
+
+resource storageAccount 'Microsoft.Storage/storageAccounts@2025-01-01' existing = {
+  name: storageAccountName
 }
 
 resource fileServices 'Microsoft.Storage/storageAccounts/fileServices@2025-01-01' = {
@@ -33,7 +35,7 @@ resource fileServices 'Microsoft.Storage/storageAccounts/fileServices@2025-01-01
   name: 'default'
   properties: {
     protocolSettings: {
-      smb: isPremiumTier ?{
+      smb: isPremiumTier ? {
         multichannel: {
           enabled: false
         }
@@ -49,18 +51,14 @@ resource fileServices 'Microsoft.Storage/storageAccounts/fileServices@2025-01-01
   }
 }
 
-// Create two file shares with different names for each app (one, two)
-resource fileServicesShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2025-01-01' = [for shareName in fileShareNames: {
-  parent: fileServices
-  name: shareName
-  properties: isPremiumTier ? {
-    provisionedIops: 1205
-    provisionedBandwidthMibps: 81
-    shareQuota: shareSizeGb
-    enabledProtocols: 'SMB'
-  } : {
+module fileServicesShares 'br/public:avm/res/storage/storage-account/file-service/share:0.1.1' = [ for shareName in fileShareNames: {
+  name: 'fileservices-${shareName}'
+  params: {
+    storageAccountName: storageAccountName
+    name: shareName
     shareQuota: shareSizeGb
     enabledProtocols: 'SMB'
     accessTier: shareTier
   }
 }]
+
