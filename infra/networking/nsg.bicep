@@ -2,7 +2,7 @@ param name string
 param tags object
 
 module nsg 'br/public:avm/res/network/network-security-group:0.5.2' = {
-  name: 'nsg'
+  name: 'nsg-avm'
   params: {
     name: name
     location: resourceGroup().location

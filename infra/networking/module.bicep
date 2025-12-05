@@ -22,28 +22,18 @@ module vnet './vnet.bicep' = {
     subnets: [
       {
         name: 'aks-subnet'
-        properties: {
-          addressPrefix: '10.240.0.0/16'
-          networkSecurityGroup: {
-            id: nsg.outputs.id
-          }
-        }
+        addressPrefix: '10.240.0.0/16'
+        networkSecurityGroupResourceId: nsg.outputs.id
       }
       {
         name: 'aks-private-ingress'
-        properties: {
-          addressPrefix: '10.241.0.0/16'
-          networkSecurityGroup: {
-            id: nsg.outputs.id
-          }
-        }
+        addressPrefix: '10.241.0.0/16'
+        networkSecurityGroupResourceId: nsg.outputs.id
       }
       {
         // For higher envs its recommneded to be secured down with NSG/ASG
         name: 'virtualmachines'
-        properties: {
-          addressPrefix: '10.242.0.0/16'
-        }
+        addressPrefix: '10.242.0.0/16'
       }
     ]
   }

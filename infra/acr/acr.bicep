@@ -15,7 +15,7 @@ resource aksIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2025-01-3
 }
 
 module acr 'br/public:avm/res/container-registry/registry:0.9.3' = {
-  name: 'acr'
+  name: 'acr-avm'
   params: {
     name: name
     location: resourceGroup().location

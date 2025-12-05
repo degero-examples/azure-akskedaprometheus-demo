@@ -39,6 +39,26 @@ param agentPoolVMSize string
 ])
 param clusterSKU string
 
+
+@description('Storage account SKU')
+@allowed([
+  'Standard_LRS'
+  'Standard_ZRS'
+  'Standard_GRS'
+  'Standard_GZRS'
+  'Standard_RAGRS'
+  'Standard_RAGZRS'
+  'StandardV2_LRS'
+  'StandardV2_ZRS'
+  'StandardV2_GRS'
+  'StandardV2_GZRS'
+  'Premium_LRS'
+  'Premium_ZRS'
+  'PremiumV2_LRS'
+  'PremiumV2_ZRS'
+])
+param storageAccountSku string // eg use 'PremiumV2_LRS' for premium 
+
 var tags object = {
   environment: env
   appname: appname
@@ -75,64 +95,64 @@ module networking './networking/module.bicep' = if (enablePrivateNetwork) {
 var aksSubnetId = enablePrivateNetwork ? networking!.outputs.aksSubnetId ?? '' : ''
 
 var clusterName = 'aks-${appname}-${env}'
-// module aks './aks/aks.bicep' = {
-//   name: 'aks'
-//   params: {
-//     tags: tags
-//     clustername: clusterName
-//     clusterSKU: clusterSKU
-//     nodePools: nodePools
-//     agentPoolMaxCount: agentPoolMaxCount
-//     agentPoolVMSize: agentPoolVMSize
-//     enablePrivateNetwork: enablePrivateNetwork
-//     privateVNetSubnetId: aksSubnetId
-//     logWorkspaceName: logworkspace.outputs.name
-//     monitorWorkspaceName: monitorworkspace.outputs.name
-//     enableAKSAppRoutingAddon: enableAKSAppRoutingAddon
-//   }
-// }
+module aks './aks/aks.bicep' = {
+  name: 'aks'
+  params: {
+    tags: tags
+    clustername: clusterName
+    clusterSKU: clusterSKU
+    nodePools: nodePools
+    agentPoolMaxCount: agentPoolMaxCount
+    agentPoolVMSize: agentPoolVMSize
+    enablePrivateNetwork: enablePrivateNetwork
+    privateVNetSubnetId: aksSubnetId
+    logWorkspaceName: logworkspace.outputs.name
+    monitorWorkspaceName: monitorworkspace.outputs.name
+    enableAKSAppRoutingAddon: enableAKSAppRoutingAddon
+  }
+}
 
 // There are no alerts added or container insights/container logs collected, 
 // just metrics (and diagnostic logs if you enable below).
 // Enabling prometheus / monitor alerts is highly recoomended for PROD
 // See the AKS baseline in github for ContianerInsights/Logs bicep
-// module aksMonitoring './aks/aks-monitoring.bicep' = {
-//   name: 'aksMonitoring'
-//   dependsOn: [aks]
-//   params: {
-//     clustername: clusterName
-//     logWorkspaceName: logworkspace.outputs.name
-//     monitorWorkspaceName: monitorworkspace.outputs.name
-//     tags: tags
-//     diagnosticsRules: [
-//       // enable these as needed - recommended mainly for enivonrment troubleshooting
-//       // {
-//       //   categoryGroup: 'allLogs'
-//       //   enabled: true  
-//       // }
-//       // {
-//       //   category: 'cluster-autoscaler'
-//       //   enabled: true
-//       // }
-//       // {
-//       //   category: 'kube-controller-manager'
-//       //   enabled: true
-//       // }
-//       // {
-//       //   category: 'kube-audit-admin'
-//       //   enabled: true
-//       // }
-//       // {
-//       //   category: 'guard'
-//       //   enabled: true
-//       // }
-//       // {
-//       //   category: 'kube-scheduler'
-//       //   enabled: false // Only enable while tuning or triaging issues with scheduling. On a normally operating cluster there is minimal value, relative to the log capture cost, to keeping this always enabled.
-//       // }
-//     ]
-//   }
-// }
+module aksMonitoring './aks/aks-monitoring.bicep' = {
+  name: 'aksMonitoring'
+  dependsOn: [aks]
+  params: {
+    clustername: clusterName
+    logWorkspaceName: logworkspace.outputs.name
+    monitorWorkspaceName: monitorworkspace.outputs.name
+    tags: tags
+    diagnosticsRules: [
+      // enable these as needed - recommended mainly for enivonrment troubleshooting
+      // {
+      //   categoryGroup: 'allLogs'
+      //   enabled: true  
+      // }
+      // {
+      //   category: 'cluster-autoscaler'
+      //   enabled: true
+      // }
+      // {
+      //   category: 'kube-controller-manager'
+      //   enabled: true
+      // }
+      // {
+      //   category: 'kube-audit-admin'
+      //   enabled: true
+      // }
+      // {
+      //   category: 'guard'
+      //   enabled: true
+      // }
+      // {
+      //   category: 'kube-scheduler'
+      //   enabled: false // Only enable while tuning or triaging issues with scheduling. On a normally operating cluster there is minimal value, relative to the log capture cost, to keeping this always enabled.
+      // }
+    ]
+  }
+}
 
 // To allow ReadOnlyMany access to files (eg scaled up deployments)
 var storageAccountName = 'st${toLower(take('${appname}${env}${uniqueString(resourceGroup().id, env)}', 22))}'
@@ -142,12 +162,12 @@ module aksFiles './storage/azurefiles.bicep' = {
   name: 'aksFiles'
   params: {
     storageAccountName: storageAccountName
+    storageAccountSku: storageAccountSku
     fileShareNames: fileShareNames
     tags: tags
     deletedFileRetentionDays: 0 // disable delete retention, > 0 enables it
     shareSizeGb: 2
     shareTier: 'Hot'
-    storageAccountSku: 'Standard_LRS' // use 'PremiumV2_LRS' for premium 
   }
 }
 var grafanaResourceName = 'amg${toLower(take(replace('${appname}${env}${uniqueString(resourceGroup().id)}', '-', ''), 20))}'
@@ -197,7 +217,7 @@ output azfilesacname string = storageAccountName
 output azfilesshare_appone string = fileShareNames[0]
 output azfilesshare_apptwo string = fileShareNames[1]
 output resource_group string = resourceGroup().name
-output kedaUserAssignedIdentityClientId string = ''//aks.outputs.kedaUserAssignedIdentityClientId
+output kedaUserAssignedIdentityClientId string = aks.outputs.kedaUserAssignedIdentityClientId
 output prometheusQueryEndpoint string = monitorworkspace.outputs.prometheusQueryEndpoint
 output grafanaResourceName string = enableGrafana ? grafana!.outputs.grafanaResourceName : ''
 output acrResourceName string = enableContainerRegistry ? acr!.outputs.name : ''

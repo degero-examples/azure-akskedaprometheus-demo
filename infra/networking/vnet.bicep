@@ -12,7 +12,7 @@ resource aksIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2025-01-3
 }
 
 module vnet 'br/public:avm/res/network/virtual-network:0.7.1' = {
-  name: 'vnet'
+  name: 'vnet-avm'
   params: {
     name: name
     location: resourceGroup().location
@@ -31,4 +31,4 @@ module vnet 'br/public:avm/res/network/virtual-network:0.7.1' = {
   }
 }
 
-output aksSubnetId string = vnet.outputs.subnetResourceIds[0].id
+output aksSubnetId string = vnet.outputs.subnetResourceIds[0]

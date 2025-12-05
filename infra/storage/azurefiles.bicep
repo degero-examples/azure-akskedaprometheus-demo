@@ -12,13 +12,13 @@ var location = resourceGroup().location
 var isPremiumTier = contains(storageAccountSku, 'Premium') 
 
 module storageAccountModule 'br/public:avm/res/storage/storage-account:0.29.0' = {
-  name: 'storageAccount'
+  name: 'storage-avm'
   params: {
     name: storageAccountName
     location: location
     tags: tags
     kind: isPremiumTier ? 'FileStorage': 'StorageV2'  // PAYG files share for Standard tier
-    skuName:storageAccountSku
+    skuName: storageAccountSku
     publicNetworkAccess: 'Enabled' // Not recommended for PROD use
     minimumTlsVersion: 'TLS1_2'
     largeFileSharesState: 'Enabled'
@@ -27,6 +27,7 @@ module storageAccountModule 'br/public:avm/res/storage/storage-account:0.29.0' =
 }
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2025-01-01' existing = {
+  dependsOn:[storageAccountModule]
   name: storageAccountName
 }
 
@@ -51,14 +52,45 @@ resource fileServices 'Microsoft.Storage/storageAccounts/fileServices@2025-01-01
   }
 }
 
-module fileServicesShares 'br/public:avm/res/storage/storage-account/file-service/share:0.1.1' = [ for shareName in fileShareNames: {
-  name: 'fileservices-${shareName}'
-  params: {
-    storageAccountName: storageAccountName
-    name: shareName
+// // This is painful as params needs object literal
+// module fileServicesSharesPremium 'br/public:avm/res/storage/storage-account/file-service/share:0.1.1' = [for (shareName, i) in fileShareNames: if (isPremiumTier == true) {
+//   dependsOn: [storageAccountModule, fileServices]
+//   name: 'fileservices-avm-${shareName}'
+//   params: {
+//     storageAccountName: storageAccountName
+//     name: shareName
+//     shareQuota: shareSizeGb
+//     enabledProtocols: 'SMB'
+//     accessTier: shareTier 
+//   }
+// }]
+
+// module fileServicesSharesRegular 'br/public:avm/res/storage/storage-account/file-service/share:0.1.1' = [for (shareName, i) in fileShareNames: if (isPremiumTier == false) {
+//   dependsOn: [storageAccountModule, fileServices]
+//   name: 'fileservices-avm-${shareName}'
+//   params: {
+//     storageAccountName: storageAccountName
+//     name: shareName
+//     shareQuota: shareSizeGb
+//     enabledProtocols: 'SMB'
+//   }
+// }]
+
+
+
+// Create two file shares with different names for each app (one, two)
+resource fileServicesShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2025-01-01' = [for shareName in fileShareNames: {
+  parent: fileServices
+  dependsOn: [storageAccountModule]
+  name: shareName
+  properties: isPremiumTier ? {
+    provisionedIops: 1205
+    provisionedBandwidthMibps: 81
+    shareQuota: shareSizeGb
+    enabledProtocols: 'SMB'
+  } : {
     shareQuota: shareSizeGb
     enabledProtocols: 'SMB'
     accessTier: shareTier
   }
 }]
-

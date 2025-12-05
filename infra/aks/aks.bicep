@@ -12,61 +12,69 @@ param enableAKSAppRoutingAddon bool
 
 var location string = resourceGroup().location
 
-resource dataCollectionEndpoint 'Microsoft.Insights/dataCollectionEndpoints@2023-03-11' = {
-  name: 'dce-${clustername}'
-  location: location
-  kind: 'Linux'
-  properties: {
-    networkAcls: {
-      publicNetworkAccess: 'Enabled'
-    }
+module dataCollectionEndpoint 'br/public:avm/res/insights/data-collection-endpoint:0.5.1' = {
+  name: 'dce-avm-${clustername}'
+  params: {
+    name: 'dce-${clustername}'
+    location: location
+    tags: tags
+    kind: 'Linux'
+    publicNetworkAccess: 'Enabled'
   }
-  tags: tags
 }
 
-resource dataCollectionRule 'Microsoft.Insights/dataCollectionRules@2023-03-11' = {
-  name: 'dcr-${clustername}'
-  kind: 'Linux'
-  location: location
-  properties: {
-    dataCollectionEndpointId: dataCollectionEndpoint.id
-    dataSources: {
-      prometheusForwarder: [
+
+module dataCollectionRule 'br/public:avm/res/insights/data-collection-rule:0.9.0' = {
+  name: 'dcr-avm-${clustername}'
+  params: {
+    name: 'dcr-${clustername}'
+    location: location
+    tags: tags
+    dataCollectionRuleProperties: {
+      kind: 'Linux'
+      dataCollectionEndpointResourceId: dataCollectionEndpoint.outputs.resourceId
+      dataSources: {
+        prometheusForwarder: [
+          {
+            name: 'PrometheusDataSource'
+            streams: [
+              'Microsoft-PrometheusMetrics'
+            ]
+            labelIncludeFilter: {}
+          }
+        ]
+      }
+      destinations: {
+        monitoringAccounts: [
+          {
+            accountResourceId: resourceId(resourceGroup().name, 'Microsoft.Monitor/accounts', monitorWorkspaceName)
+            name: monitorWorkspaceName
+          }
+        ]
+      }
+      dataFlows: [
         {
-          name: 'PrometheusDataSource'
           streams: [
             'Microsoft-PrometheusMetrics'
           ]
-          labelIncludeFilter: {}
+          destinations: [
+            monitorWorkspaceName
+          ]
         }
       ]
     }
-    destinations: {
-      monitoringAccounts: [
-        {
-          accountResourceId: resourceId(resourceGroup().name, 'Microsoft.Monitor/accounts', monitorWorkspaceName)
-          name: monitorWorkspaceName
-        }
-      ]
-    }
-    dataFlows: [
-      {
-        streams: [
-          'Microsoft-PrometheusMetrics'
-        ]
-        destinations: [
-          monitorWorkspaceName
-        ]
-      }
-    ]
   }
-  tags: tags
 }
 
 var logworkspaceId = resourceId(resourceGroup().name, 'Microsoft.OperationalInsights/workspaces', logWorkspaceName)
 
+resource dcr 'Microsoft.Insights/dataCollectionRules@2023-03-11' existing = {
+  name: dataCollectionRule.name
+}
+
+// AVM not used as no tags param
 resource diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  scope: dataCollectionRule
+  scope: dcr
   name: 'default'
   properties: {
     workspaceId: logworkspaceId
@@ -101,35 +109,37 @@ resource diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-pr
   }
 }
 
-resource dataCollectionRuleAssociation 'Microsoft.Insights/dataCollectionRuleAssociations@2023-03-11' = {
-  name: 'dcra-${clustername}'
-  dependsOn: [ diagnosticSettings ]
-  scope: managedCluster
-  properties: {
-    dataCollectionRuleId: dataCollectionRule.id
+
+
+// AKS cluster User assigned identity
+module aksUserAssignedIdentity 'br/public:avm/res/managed-identity/user-assigned-identity:0.4.2' = {
+  name: 'ident-avm-mi-${clustername}'
+  params: {
+    name: 'mi-${clustername}'
+    location: location
+    tags: tags
   }
 }
 
-// AKS cluster User assigned identity
-resource aksUserAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2025-01-31-preview' = {
-  name: 'mi-${clustername}'
-  location: location
-  tags: tags
-}
-
 // Kubelenet User assigned identity
-resource kubeletUserAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2025-01-31-preview' = {
-  name: 'mi-kubelet-${clustername}'
-  location: location
-  tags: tags
+module kubeletUserAssignedIdentity 'br/public:avm/res/managed-identity/user-assigned-identity:0.4.2' = {
+  name: 'ident-avm-mi-kubelet-${clustername}'
+  params: {
+    name: 'mi-kubelet-${clustername}'
+    location: location
+    tags: tags
+  }
 }
 
 // Workload User assigned identity for keda
-resource kedaUserAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2025-01-31-preview' = {
-  dependsOn: [ managedCluster]
-  name: 'mi-keda-${clustername}'
-  location: location
-  tags: tags
+module kedaUserAssignedIdentity 'br/public:avm/res/managed-identity/user-assigned-identity:0.4.2' = {
+  name: 'ident-avm-mi-keda-${clustername}'
+  dependsOn: [ managedCluster ]
+  params: {
+    name: 'mi-keda-${clustername}'
+    location: location
+    tags: tags
+  }
 }
 
 // Assign Roles eg Managed Identity Operator to allow AKS to assign kubelet identity to nodes
@@ -141,30 +151,21 @@ module kubeletRoleAssignemnt 'aks-auth.bicep' = {
   }
 }
 
-resource managedCluster 'Microsoft.ContainerService/managedClusters@2025-07-02-preview' = {
-  name: clustername
+module managedCluster 'br/public:avm/res/container-service/managed-cluster:0.11.1' = {
+  name: 'aks-avm-${clustername}'
   dependsOn: [ kubeletRoleAssignemnt ]
-  location: location
-  tags: tags
-  sku: {
-    tier: clusterSKU
-    name: 'Base'
-  }
-  identity: {
-    type: 'UserAssigned'
-    userAssignedIdentities: {
-      '${aksUserAssignedIdentity.id}': {}
-    }
-  }
-  properties: {
+  params: {
+    name: clustername
+    location: location
+    tags: tags
+    skuName:'Base'
+    skuTier: clusterSKU
+    managedIdentities: {
+      userAssignedResourceIds: [ aksUserAssignedIdentity.outputs.resourceId ]
+    }  
     dnsPrefix: '${clustername}-dns'
-    azureMonitorProfile: {
-      metrics: {
-        enabled: true
-        kubeStateMetrics: {}
-      }
-    }
-    agentPoolProfiles: [
+    enableAzureMonitorProfileMetrics: true
+    primaryAgentPoolProfiles: [
       {
         name: 'agentpool'
         count: 1 
@@ -199,212 +200,165 @@ resource managedCluster 'Microsoft.ContainerService/managedClusters@2025-07-02-p
         vnetSubnetID: enablePrivateNetwork ? privateVNetSubnetId : null
       }
     ]
-    servicePrincipalProfile: {
+    aksServicePrincipalProfile: {
       clientId: 'msi'
     }
-    addonProfiles: {
-      azureKeyvaultSecretsProvider: {
-        enabled: false
-      }
-      azurepolicy: {
-        enabled: false
-      }
-      aciConnectorLinux: {
-        enabled: false
-      }
-      omsAgent: {
-        enabled: true
-        config: {
-          logAnalyticsWorkspaceResourceID: logworkspaceId
-          useAADAuth: 'true'
-        }
-      }
-    }
+    enableKeyvaultSecretsProvider: false
+    azurePolicyEnabled: false
+    aciConnectorLinuxEnabled: false
+    omsAgentEnabled: true
+    omsAgentUseAADAuth: true
+    monitoringWorkspaceResourceId: logworkspaceId
     nodeResourceGroup: 'MC-${clustername}'
     enableRBAC: true
-    networkProfile: {
-      networkPlugin: 'azure'
-      networkPluginMode: 'overlay'
-      networkPolicy: 'azure'
-      networkDataplane: 'azure'
-      loadBalancerSku: 'standard'
-      loadBalancerProfile: {
-        managedOutboundIPs: {
-          count: 1
-        }
-        backendPoolType: 'nodeIPConfiguration'
-      }
-      podCidr: '10.244.0.0/16' 
-      serviceCidr: '10.0.0.0/16'
-      dnsServiceIP: '10.0.0.10'
-      outboundType: 'loadBalancer'
-      podCidrs: [
-        '10.244.0.0/16'
-      ]
-      serviceCidrs: [
-        '10.0.0.0/16'
-      ]
-      ipFamilies: [
-        'IPv4'
-      ]
-    }
-    autoScalerProfile: {
-      'balance-similar-node-groups': 'false'
-      'daemonset-eviction-for-empty-nodes': false
-      'daemonset-eviction-for-occupied-nodes': true
-      expander: 'random'
-      'ignore-daemonsets-utilization': true
-      'max-empty-bulk-delete': '10'
-      'max-graceful-termination-sec': '600'
-      'max-node-provision-time': '15m'
-      'max-total-unready-percentage': '45'
-      'new-pod-scale-up-delay': '0s'
-      'ok-total-unready-count': '3'
-      'scale-down-delay-after-add': '5m'
-      'scale-down-delay-after-delete': '10s'
-      'scale-down-delay-after-failure': '3m'
-      'scale-down-unneeded-time': '5m'
-      'scale-down-unready-time': '5m'
-      'scale-down-utilization-threshold': '0.5'
-      'scan-interval': '30s'
-      'skip-nodes-with-local-storage': 'false'
-      'skip-nodes-with-system-pods': 'true'
-    }
-    autoUpgradeProfile: {
-      upgradeChannel: 'patch'
-      nodeOSUpgradeChannel: 'NodeImage'
-    }
+    networkPlugin: 'azure'
+    networkPluginMode: 'overlay'
+    networkPolicy: 'azure'
+    networkDataplane: 'azure'
+    loadBalancerSku: 'standard'
+    managedOutboundIPCount: 1
+    backendPoolType: 'NodeIPConfiguration'
+    podCidr: '10.244.0.0/16' 
+    serviceCidr: '10.0.0.0/16'
+    dnsServiceIP: '10.0.0.10'
+    outboundType: 'loadBalancer'
+
+    // Agressive scaledown profile for cost savings
+    autoScalerProfileScaleDownDelayAfterAdd: '5m'
+    autoScalerProfileScaleDownDelayAfterDelete: '10s'
+    autoScalerProfileScaleDownDelayAfterFailure: '3m'
+    autoScalerProfileScaleDownUnneededTime: '5m'
+    autoScalerProfileScaleDownUnreadyTime: '5m'
+    autoScalerProfileSkipNodesWithLocalStorage: false
+    autoScalerProfileSkipNodesWithSystemPods: true
+    autoScalerProfileBalanceSimilarNodeGroups: false
+    autoScalerProfileIgnoreDaemonsetsUtilization: true
+    autoScalerProfileDaemonsetEvictionForOccupiedNodes: true
+    autoScalerProfileExpander: 'random'
+    autoScalerProfileUtilizationThreshold: '0.5'
+    autoScalerProfileMaxEmptyBulkDelete: 10
+    autoScalerProfileMaxGracefulTerminationSec: 600
+    autoScalerProfileMaxNodeProvisionTime: '15m'
+    autoScalerProfileMaxTotalUnreadyPercentage: 45
+    autoScalerProfileNewPodScaleUpDelay: '0s'
+    autoScalerProfileOkTotalUnreadyCount: 3
+    autoScalerProfileScanInterval: '30s'
+
+    autoNodeOsUpgradeProfileUpgradeChannel: 'NodeImage'
+    autoUpgradeProfileUpgradeChannel: 'patch'
     disableLocalAccounts: false
     identityProfile: { 
       kubeletIdentity: {
-        resourceId: kubeletUserAssignedIdentity.id
-        clientId: kubeletUserAssignedIdentity.properties.clientId
-        objectId: kubeletUserAssignedIdentity.properties.principalId
+        resourceId: kubeletUserAssignedIdentity.outputs.resourceId
+        clientId: kubeletUserAssignedIdentity.outputs.clientId
+        objectId: kubeletUserAssignedIdentity.outputs.principalId
       }
     }
-    ingressProfile: {
-      webAppRouting: { 
-        // Use the AKS managed app routing (nginx ingress controller) in PROD only if not using private net. 
-        // This allows IP based requests to show up in metrics (see issue here: https://github.com/Azure/AKS/issues/5216)
-        enabled: enableAKSAppRoutingAddon 
+
+    // Use the AKS managed app routing (nginx ingress controller) in PROD only if not using private net. 
+    // This allows IP based requests to show up in metrics (see issue here: https://github.com/Azure/AKS/issues/5216)
+    webApplicationRoutingEnabled: enableAKSAppRoutingAddon
+    enableImageCleaner: true
+    imageCleanerIntervalHours: 168
+    enableWorkloadIdentity: true
+
+    // Allow Disk or Azure files PV / PVC
+    enableStorageProfileDiskCSIDriver: true
+    enableStorageProfileFileCSIDriver: true
+    enableStorageProfileSnapshotController: true
+
+    enableOidcIssuerProfile: true
+    kedaAddon: false // This Uses a custom KEDA in the workload not the addon due to dependency issues / managed identity
+    costAnalysisEnabled: false // enable for cost analysis recommended in prod only
+
+    // User pools
+    agentPools: [ for n in nodePools : {
+        name: n.name
+        count: n.count
+        vmSize: n.sku
+        maxCount: n.maxCount
+        minCount: n.minCount
+        osDiskSizeGB: 30
+        osDiskType: 'Ephemeral'
+        kubeletDiskType: 'OS'
+        workloadRuntime: 'OCIContainer'
+        maxPods: 250
+        enableAutoScaling: true
+        type: 'VirtualMachineScaleSets' // Use scale sets so nodes can scale on KEDA hpa demand
+        availabilityZones: []
+        scaleDownMode: 'Delete'
+        enableNodePublicIP: false
+        nodeLabels: n.nodeLabels
+        mode: 'User'
+        osType: 'Linux'
+        osSKU: 'AzureLinux'
+        enableFIPS: false
+        enableVTPM: false
+        enableSecureBoot: false
+        vnetSubnetResourceId: enablePrivateNetwork ? privateVNetSubnetId : null
       }
-    }
-    securityProfile: {
-      imageCleaner: {
-        enabled: true
-        intervalHours: 168
+    ]
+
+    maintenanceConfigurations: [
+      {
+        name: 'aksManagedAutoUpgradeSchedule'
+        maintenanceWindow: {
+          schedule: {
+            weekly: {
+              intervalWeeks: 1
+              dayOfWeek: 'Sunday'
+            }
+          }
+          durationHours: 8
+          utcOffset: '+00:00'
+          startDate: '2025-11-12'
+          startTime: '00:00'
+        }
       }
-      workloadIdentity: {
-        enabled: true
+      {
+        name: 'aksManagedNodeOSUpgradeSchedule'
+        maintenanceWindow: {
+          schedule: {
+            weekly: {
+              intervalWeeks: 1
+              dayOfWeek: 'Sunday'
+            }
+          }
+          durationHours: 8
+          utcOffset: '+00:00'
+          startDate: '2025-11-12'
+          startTime: '00:00'
+        }
       }
-    }
-    storageProfile: {
-      // Allow Disk or Azure files PV / PVC
-      diskCSIDriver: {
-        enabled: true
-      }
-      fileCSIDriver: {
-        enabled: true
-      }
-      snapshotController: {
-        enabled: true
-      }
-    }
-    oidcIssuerProfile: {
-      enabled: true
-    }
-    workloadAutoScalerProfile: {
-      keda: {
-        // This Uses a custom KEDA in the workload not the addon due to dependency issues / managed identity
-        enabled: false 
-      }
-    }
-    metricsProfile: {
-      costAnalysis: {
-        enabled: false // enable for cost analysis recommended in prod only
-      }
-    }
+    ]
   }
 }
 
-resource userPools 'Microsoft.ContainerService/managedClusters/agentPools@2025-07-02-preview' = [for n in nodePools : {
-  parent: managedCluster
-  name: n.name
-  properties: {
-    count: n.count
-    vmSize: n.sku
-    maxCount: n.maxCount
-    minCount: n.minCount
-    osDiskSizeGB: 30
-    osDiskType: 'Ephemeral'
-    kubeletDiskType: 'OS'
-    workloadRuntime: 'OCIContainer'
-    maxPods: 250
-    enableAutoScaling: true
-    type: 'VirtualMachineScaleSets' // Use scale sets so nodes can scale on KEDA hpa demand
-    availabilityZones: []
-    scaleDownMode: 'Delete'
-    powerState: { 
-      code: 'Running'
-    }
-    enableNodePublicIP: false
-    nodeLabels: n.nodeLabels
-    mode: 'User'
-    osType: 'Linux'
-    osSKU: 'AzureLinux'
-    enableFIPS: false
-    securityProfile: {
-      enableVTPM: false
-      enableSecureBoot: false
-    }
-    vnetSubnetID: enablePrivateNetwork ? privateVNetSubnetId : null
-  }
-}]
+resource cluster 'Microsoft.ServiceFabric/managedClusters@2025-06-01-preview' existing = {
+  dependsOn: [ managedCluster]
+  name: clustername
+}
 
-resource aksManagedAutoUpgradeSchedule 'Microsoft.ContainerService/managedClusters/maintenanceConfigurations@2025-07-02-preview' = {
-  parent: managedCluster
-  name: 'aksManagedAutoUpgradeSchedule'
+resource dataCollectionRuleAssociation 'Microsoft.Insights/dataCollectionRuleAssociations@2023-03-11' = {
+  name: 'dcra-${clustername}'
+  dependsOn: [ diagnosticSettings ]
+  scope: cluster
   properties: {
-    maintenanceWindow: {
-      schedule: {
-        weekly: {
-          intervalWeeks: 1
-          dayOfWeek: 'Sunday'
-        }
-      }
-      durationHours: 8
-      utcOffset: '+00:00'
-      startDate: '2025-11-12'
-      startTime: '00:00'
-    }
+    dataCollectionRuleId: dataCollectionRule.outputs.resourceId
   }
 }
 
-resource aksManagedNodeOSUpgradeSchedule 'Microsoft.ContainerService/managedClusters/maintenanceConfigurations@2025-07-02-preview' = {
-  parent: managedCluster
-  name: 'aksManagedNodeOSUpgradeSchedule'
-  properties: {
-     maintenanceWindow: {
-      schedule: {
-        weekly: {
-          intervalWeeks: 1
-          dayOfWeek: 'Sunday'
-        }
-      }
-      durationHours: 8
-      utcOffset: '+00:00'
-      startDate: '2025-11-12'
-      startTime: '00:00'
-    }
-  }
+resource kedaIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2025-01-31-preview' existing = {
+  dependsOn: [ kedaUserAssignedIdentity ]
+  name: 'mi-keda-${clustername}'
 }
 
 // Create federated identity needed for keda workload to access azure monitor
 resource federatedCredential 'Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdentityCredentials@2023-01-31' = {
     name: 'fed-${kedaUserAssignedIdentity.name}'
-    parent: kedaUserAssignedIdentity
+    parent: kedaIdentity
     properties: {
-        issuer: managedCluster.properties.oidcIssuerProfile.issuerURL
+        issuer: managedCluster.outputs.oidcIssuerUrl!
         subject: 'system:serviceaccount:keda:keda-operator'
         audiences: [
             'api://AzureADTokenExchange'
@@ -415,6 +369,6 @@ resource federatedCredential 'Microsoft.ManagedIdentity/userAssignedIdentities/f
 output aksUserAssignedIdentityName string = aksUserAssignedIdentity.name
 output kubeletUserAssignedIdentityName string = kubeletUserAssignedIdentity.name
 output kedaUserAssignedIdentityName string = kedaUserAssignedIdentity.name
-output kedaUserAssignedIdentityClientId string = kedaUserAssignedIdentity.properties.clientId
-output oidcIssuerProfileissuerUrl string = managedCluster.properties.oidcIssuerProfile.issuerURL
+output kedaUserAssignedIdentityClientId string = kedaUserAssignedIdentity.outputs.clientId
+output oidcIssuerProfileissuerUrl string = managedCluster.outputs.oidcIssuerUrl!
 output kedaFederatedIdentityName string = 'fed-${kedaUserAssignedIdentity.name}'

@@ -3,7 +3,7 @@ param appname string
 param tags object
 
 module loganaltyics 'br/public:avm/res/operational-insights/workspace:0.14.0' = {
-  name: 'loganaltyics'
+  name: 'loganaltyics-avm'
   params: {
     name: 'la-${appname}-${env}'
     location: resourceGroup().location
