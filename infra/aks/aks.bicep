@@ -146,8 +146,8 @@ module kedaUserAssignedIdentity 'br/public:avm/res/managed-identity/user-assigne
 module kubeletRoleAssignemnt 'aks-auth.bicep' = {
   name: 'kubeletRoleAssignemnt-${clustername}'
   params: {
-    clusterIdentityName: aksUserAssignedIdentity.name
-    kubeletIdentityName: kubeletUserAssignedIdentity.name
+    clusterIdentityName: aksUserAssignedIdentity.outputs.name
+    kubeletIdentityName: kubeletUserAssignedIdentity.outputs.name
   }
 }
 
@@ -366,9 +366,9 @@ resource federatedCredential 'Microsoft.ManagedIdentity/userAssignedIdentities/f
     }
 }
 
-output aksUserAssignedIdentityName string = aksUserAssignedIdentity.name
-output kubeletUserAssignedIdentityName string = kubeletUserAssignedIdentity.name
-output kedaUserAssignedIdentityName string = kedaUserAssignedIdentity.name
+output aksUserAssignedIdentityName string = aksUserAssignedIdentity.outputs.name
+output kubeletUserAssignedIdentityName string = kubeletUserAssignedIdentity.outputs.name
+output kedaUserAssignedIdentityName string = kedaUserAssignedIdentity.outputs.name
 output kedaUserAssignedIdentityClientId string = kedaUserAssignedIdentity.outputs.clientId
 output oidcIssuerProfileissuerUrl string = managedCluster.outputs.oidcIssuerUrl!
 output kedaFederatedIdentityName string = 'fed-${kedaUserAssignedIdentity.name}'
