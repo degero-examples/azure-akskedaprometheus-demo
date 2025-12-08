@@ -1,4 +1,4 @@
-# AKS KEDA autoscaler demo
+# AKS KEDA + Prometheus autoscaler demo
 
 This is a demonstration of a multi app (2) deployment in Kubernetes with KEDA autoscaling on prometheus metrics.
 It is also intentended to be used as a starter template to kickstart adapting a project and testing it locally for scaling needs.
