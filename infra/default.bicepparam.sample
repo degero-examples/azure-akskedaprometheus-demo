@@ -12,6 +12,7 @@ param grafanaUsers = [
 ]
 param enableAKSAppRoutingAddon = false
 param enableContainerRegistry = false
+param storageAccountSku = 'Standard_LRS'
 param clusterSKU = 'Free' // For prod ensure using at least standard
 param agentPoolMaxCount = 2
 // This is the lowest spec/cost VM that supports ephemeral OS disks, be sure to check you have enough vCPU quota

@@ -2,20 +2,17 @@ param env string
 param appname string
 param tags object
 
-resource loganaltyics 'Microsoft.OperationalInsights/workspaces@2025-02-01' = {
-  name: 'la-${appname}-${env}'
-  location: resourceGroup().location
-  tags: tags
-  properties: {
-    sku: {
-      name: 'PerGB2018'
-    }
-    retentionInDays: 30
+module loganaltyics 'br/public:avm/res/operational-insights/workspace:0.14.0' = {
+  name: 'loganaltyics-avm'
+  params: {
+    name: 'la-${appname}-${env}'
+    location: resourceGroup().location
+    tags: tags
+    skuName: 'PerGB2018'
+    dataRetention: 30
     publicNetworkAccessForIngestion: 'Enabled'
     publicNetworkAccessForQuery: 'Enabled'
-    workspaceCapping: {
-      dailyQuotaGb: 1
-    }
+    dailyQuotaGb: 1
     features: {
       immediatePurgeDataOn30Days: env == 'prod' ? false : true
     }

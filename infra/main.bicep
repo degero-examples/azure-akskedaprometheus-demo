@@ -18,7 +18,6 @@ param enableAKSAppRoutingAddon bool
 
 @allowed([
   'Basic'
-  'Classic'
   'Standard'
   'Premium'
 ])
@@ -39,6 +38,26 @@ param agentPoolVMSize string
   'Premium'
 ])
 param clusterSKU string
+
+
+@description('Storage account SKU')
+@allowed([
+  'Standard_LRS'
+  'Standard_ZRS'
+  'Standard_GRS'
+  'Standard_GZRS'
+  'Standard_RAGRS'
+  'Standard_RAGZRS'
+  'StandardV2_LRS'
+  'StandardV2_ZRS'
+  'StandardV2_GRS'
+  'StandardV2_GZRS'
+  'Premium_LRS'
+  'Premium_ZRS'
+  'PremiumV2_LRS'
+  'PremiumV2_ZRS'
+])
+param storageAccountSku string // eg use 'PremiumV2_LRS' for premium 
 
 var tags object = {
   environment: env
@@ -136,19 +155,19 @@ module aksMonitoring './aks/aks-monitoring.bicep' = {
 }
 
 // To allow ReadOnlyMany access to files (eg scaled up deployments)
-var storageAccountName = 'st${toLower(take('${appname}${uniqueString(resourceGroup().id, env)}', 22))}'
+var storageAccountName = 'st${toLower(take('${appname}${env}${uniqueString(resourceGroup().id, env)}', 22))}'
 
 var fileShareNames = ['sh-aks-${appname}-appone-${env}', 'sh-aks-${appname}-apptwo-${env}']
 module aksFiles './storage/azurefiles.bicep' = {
   name: 'aksFiles'
   params: {
     storageAccountName: storageAccountName
+    storageAccountSku: storageAccountSku
     fileShareNames: fileShareNames
     tags: tags
     deletedFileRetentionDays: 0 // disable delete retention, > 0 enables it
     shareSizeGb: 2
     shareTier: 'Hot'
-    storageAccountSku: 'Standard_LRS' // use 'PremiumV2_LRS' for premium 
   }
 }
 var grafanaResourceName = 'amg${toLower(take(replace('${appname}${env}${uniqueString(resourceGroup().id)}', '-', ''), 20))}'
@@ -165,24 +184,11 @@ module grafana './observability/grafana.bicep' = if (enableGrafana) {
 
 module azureMonitorAuth './observability/monitor-auth.bicep' = {
   name: 'aksRBAC'
-  dependsOn: enableGrafana ? [networking, aks, grafana] : [networking, aks]
+  dependsOn: enableGrafana ? [networking, grafana] : [networking] //aks
   params: {
     appname: appname
     env: env
     grafanaIdentityPrincipalId: enableGrafana ? grafana!.outputs.grafanaIdentityPrincipalId : ''
-  }
-}
-
-// Alow aks cluster access to vnet
-module vnetAuth './networking/vnet-auth.bicep' = if (enablePrivateNetwork) {
-  name: 'vnetAuth'
-  dependsOn: [
-    aks
-    networking
-  ]
-  params: {
-    appname: appname
-    env: env
   }
 }
 
@@ -194,20 +200,11 @@ module acr './acr/acr.bicep' = if (enableContainerRegistry) {
     name: acrResourceName
     sku: continerRegistrySku
     tags: tags
+    appname: appname
+    env: env
   }
 }
 
-module acrAuth './acr/acr-auth.bicep' = if (enableContainerRegistry) {
-  name: 'acrAuth'
-  dependsOn: [
-    aks
-  ]
-  params: {
-    appname: appname
-    env: env
-    acrName: acr!.outputs.name
-  }
-}
 
 output azure_location string = resourceGroup().location
 output azure_tenant_id string = tenant().tenantId
