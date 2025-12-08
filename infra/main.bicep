@@ -183,11 +183,24 @@ module grafana './observability/grafana.bicep' = if (enableGrafana) {
 
 module azureMonitorAuth './observability/monitor-auth.bicep' = {
   name: 'aksRBAC'
-  dependsOn: enableGrafana ? [networking, grafana] : [networking] //aks
+  dependsOn: enableGrafana ? [networking, grafana, aks] : [networking, aks]
   params: {
     appname: appname
     env: env
     grafanaIdentityPrincipalId: enableGrafana ? grafana!.outputs.grafanaIdentityPrincipalId : ''
+  }
+}
+
+// Alow aks cluster access to vnet
+module vnetAuth './networking/vnet-auth.bicep' = if (enablePrivateNetwork) {
+  name: 'vnetAuth'
+  dependsOn: [
+    aks
+    networking
+  ]
+  params: {
+    appname: appname
+    env: env
   }
 }
 
