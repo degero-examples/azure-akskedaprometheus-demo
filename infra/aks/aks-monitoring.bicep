@@ -11,61 +11,68 @@ resource managedCluster 'Microsoft.ContainerService/managedClusters@2025-07-02-p
 
 var location string = resourceGroup().location
 
-resource dataCollectionEndpoint 'Microsoft.Insights/dataCollectionEndpoints@2023-03-11' = {
-  name: 'dce-${clustername}'
-  location: location
-  kind: 'Linux'
-  properties: {
-    networkAcls: {
-      publicNetworkAccess: 'Enabled'
-    }
+module dataCollectionEndpoint 'br/public:avm/res/insights/data-collection-endpoint:0.5.1' = {
+  name: 'dce-avm-${clustername}'
+  params: {
+    name: 'dce-${clustername}'
+    location: location
+    tags: tags
+    kind: 'Linux'
+    publicNetworkAccess: 'Enabled'
   }
-  tags: tags
 }
 
-resource dataCollectionRule 'Microsoft.Insights/dataCollectionRules@2023-03-11' = {
-  name: 'dcr-${clustername}'
-  kind: 'Linux'
-  location: location
-  properties: {
-    dataCollectionEndpointId: dataCollectionEndpoint.id
-    dataSources: {
-      prometheusForwarder: [
+module dataCollectionRule 'br/public:avm/res/insights/data-collection-rule:0.9.0' = {
+  name: 'dcr-avm-${clustername}'
+  params: {
+    name: 'dcr-${clustername}'
+    location: location
+    tags: tags
+    dataCollectionRuleProperties: {
+      kind: 'Linux'
+      dataCollectionEndpointResourceId: dataCollectionEndpoint.outputs.resourceId
+      dataSources: {
+        prometheusForwarder: [
+          {
+            name: 'PrometheusDataSource'
+            streams: [
+              'Microsoft-PrometheusMetrics'
+            ]
+            labelIncludeFilter: {}
+          }
+        ]
+      }
+      destinations: {
+        monitoringAccounts: [
+          {
+            accountResourceId: resourceId(resourceGroup().name, 'Microsoft.Monitor/accounts', monitorWorkspaceName)
+            name: monitorWorkspaceName
+          }
+        ]
+      }
+      dataFlows: [
         {
-          name: 'PrometheusDataSource'
           streams: [
             'Microsoft-PrometheusMetrics'
           ]
-          labelIncludeFilter: {}
+          destinations: [
+            monitorWorkspaceName
+          ]
         }
       ]
     }
-    destinations: {
-      monitoringAccounts: [
-        {
-          accountResourceId: resourceId(resourceGroup().name, 'Microsoft.Monitor/accounts', monitorWorkspaceName)
-          name: monitorWorkspaceName
-        }
-      ]
-    }
-    dataFlows: [
-      {
-        streams: [
-          'Microsoft-PrometheusMetrics'
-        ]
-        destinations: [
-          monitorWorkspaceName
-        ]
-      }
-    ]
   }
-  tags: tags
 }
 
 var logworkspaceId = resourceId(resourceGroup().name, 'Microsoft.OperationalInsights/workspaces', logWorkspaceName)
 
+resource dcr 'Microsoft.Insights/dataCollectionRules@2023-03-11' existing = {
+  name: dataCollectionRule.name
+}
+
+// AVM not used as no tags param
 resource diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  scope: dataCollectionRule
+  scope: dcr
   name: 'default'
   properties: {
     workspaceId: logworkspaceId
@@ -74,7 +81,8 @@ resource diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-pr
   }
 }
 
-resource dataCollectionRuleAssociation 'Microsoft.Insights/dataCollectionRuleAssociations@2023-03-11'  = {
+// No AVM for DCRA
+resource dataCollectionRuleAssociation 'Microsoft.Insights/dataCollectionRuleAssociations@2023-03-11' = {
   name: 'dcra-${clustername}'
   dependsOn: [ diagnosticSettings ]
   scope: managedCluster

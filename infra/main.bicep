@@ -107,7 +107,6 @@ module aks './aks/aks.bicep' = {
     enablePrivateNetwork: enablePrivateNetwork
     privateVNetSubnetId: aksSubnetId
     logWorkspaceName: logworkspace.outputs.name
-    monitorWorkspaceName: monitorworkspace.outputs.name
     enableAKSAppRoutingAddon: enableAKSAppRoutingAddon
   }
 }

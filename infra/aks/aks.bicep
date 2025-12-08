@@ -1,7 +1,6 @@
 param clustername string
 param tags object
 param logWorkspaceName string
-param monitorWorkspaceName string
 param clusterSKU string
 param nodePools array
 param agentPoolMaxCount int
@@ -11,105 +10,6 @@ param privateVNetSubnetId string
 param enableAKSAppRoutingAddon bool 
 
 var location string = resourceGroup().location
-
-module dataCollectionEndpoint 'br/public:avm/res/insights/data-collection-endpoint:0.5.1' = {
-  name: 'dce-avm-${clustername}'
-  params: {
-    name: 'dce-${clustername}'
-    location: location
-    tags: tags
-    kind: 'Linux'
-    publicNetworkAccess: 'Enabled'
-  }
-}
-
-
-module dataCollectionRule 'br/public:avm/res/insights/data-collection-rule:0.9.0' = {
-  name: 'dcr-avm-${clustername}'
-  params: {
-    name: 'dcr-${clustername}'
-    location: location
-    tags: tags
-    dataCollectionRuleProperties: {
-      kind: 'Linux'
-      dataCollectionEndpointResourceId: dataCollectionEndpoint.outputs.resourceId
-      dataSources: {
-        prometheusForwarder: [
-          {
-            name: 'PrometheusDataSource'
-            streams: [
-              'Microsoft-PrometheusMetrics'
-            ]
-            labelIncludeFilter: {}
-          }
-        ]
-      }
-      destinations: {
-        monitoringAccounts: [
-          {
-            accountResourceId: resourceId(resourceGroup().name, 'Microsoft.Monitor/accounts', monitorWorkspaceName)
-            name: monitorWorkspaceName
-          }
-        ]
-      }
-      dataFlows: [
-        {
-          streams: [
-            'Microsoft-PrometheusMetrics'
-          ]
-          destinations: [
-            monitorWorkspaceName
-          ]
-        }
-      ]
-    }
-  }
-}
-
-var logworkspaceId = resourceId(resourceGroup().name, 'Microsoft.OperationalInsights/workspaces', logWorkspaceName)
-
-resource dcr 'Microsoft.Insights/dataCollectionRules@2023-03-11' existing = {
-  name: dataCollectionRule.name
-}
-
-// AVM not used as no tags param
-resource diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  scope: dcr
-  name: 'default'
-  properties: {
-    workspaceId: logworkspaceId
-    logs: [
-      // enable these as preferred
-      // {
-      //   categoryGroup: 'allLogs'
-      //   enabled: true  
-      // }
-      // {
-      //   category: 'cluster-autoscaler'
-      //   enabled: true
-      // }
-      // {
-      //   category: 'kube-controller-manager'
-      //   enabled: true
-      // }
-      // {
-      //   category: 'kube-audit-admin'
-      //   enabled: true
-      // }
-      // {
-      //   category: 'guard'
-      //   enabled: true
-      // }
-      // {
-      //   category: 'kube-scheduler'
-      //   enabled: false // Only enable while tuning or triaging issues with scheduling. On a normally operating cluster there is minimal value, relative to the log capture cost, to keeping this always enabled.
-      // }
-    ]
-    logAnalyticsDestinationType: 'AzureDiagnostics'
-  }
-}
-
-
 
 // AKS cluster User assigned identity
 module aksUserAssignedIdentity 'br/public:avm/res/managed-identity/user-assigned-identity:0.4.2' = {
@@ -150,6 +50,8 @@ module kubeletRoleAssignemnt 'aks-auth.bicep' = {
     kubeletIdentityName: kubeletUserAssignedIdentity.outputs.name
   }
 }
+
+var logworkspaceId = resourceId(resourceGroup().name, 'Microsoft.OperationalInsights/workspaces', logWorkspaceName)
 
 module managedCluster 'br/public:avm/res/container-service/managed-cluster:0.11.1' = {
   name: 'aks-avm-${clustername}'
@@ -334,19 +236,6 @@ module managedCluster 'br/public:avm/res/container-service/managed-cluster:0.11.
   }
 }
 
-resource cluster 'Microsoft.ServiceFabric/managedClusters@2025-06-01-preview' existing = {
-  dependsOn: [ managedCluster]
-  name: clustername
-}
-
-resource dataCollectionRuleAssociation 'Microsoft.Insights/dataCollectionRuleAssociations@2023-03-11' = {
-  name: 'dcra-${clustername}'
-  dependsOn: [ diagnosticSettings ]
-  scope: cluster
-  properties: {
-    dataCollectionRuleId: dataCollectionRule.outputs.resourceId
-  }
-}
 
 resource kedaIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2025-01-31-preview' existing = {
   dependsOn: [ kedaUserAssignedIdentity ]
