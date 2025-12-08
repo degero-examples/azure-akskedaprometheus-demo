@@ -52,29 +52,29 @@ resource fileServices 'Microsoft.Storage/storageAccounts/fileServices@2025-01-01
   }
 }
 
-// // This is painful as params needs object literal
-// module fileServicesSharesPremium 'br/public:avm/res/storage/storage-account/file-service/share:0.1.1' = [for (shareName, i) in fileShareNames: if (isPremiumTier == true) {
-//   dependsOn: [storageAccountModule, fileServices]
-//   name: 'fileservices-avm-${shareName}'
-//   params: {
-//     storageAccountName: storageAccountName
-//     name: shareName
-//     shareQuota: shareSizeGb
-//     enabledProtocols: 'SMB'
-//     accessTier: shareTier 
-//   }
-// }]
+// This is painful as params needs object literal
+module fileServicesSharesPremium 'br/public:avm/res/storage/storage-account/file-service/share:0.1.1' = [for (shareName, i) in fileShareNames: if (isPremiumTier == true) {
+  dependsOn: [storageAccountModule, fileServices]
+  name: 'fileservices-avm-${shareName}'
+  params: {
+    storageAccountName: storageAccountName
+    name: shareName
+    shareQuota: shareSizeGb
+    enabledProtocols: 'SMB'
+    accessTier: shareTier 
+  }
+}]
 
-// module fileServicesSharesRegular 'br/public:avm/res/storage/storage-account/file-service/share:0.1.1' = [for (shareName, i) in fileShareNames: if (isPremiumTier == false) {
-//   dependsOn: [storageAccountModule, fileServices]
-//   name: 'fileservices-avm-${shareName}'
-//   params: {
-//     storageAccountName: storageAccountName
-//     name: shareName
-//     shareQuota: shareSizeGb
-//     enabledProtocols: 'SMB'
-//   }
-// }]
+module fileServicesSharesRegular 'br/public:avm/res/storage/storage-account/file-service/share:0.1.1' = [for (shareName, i) in fileShareNames: if (isPremiumTier == false) {
+  dependsOn: [storageAccountModule, fileServices]
+  name: 'fileservices-avm-${shareName}'
+  params: {
+    storageAccountName: storageAccountName
+    name: shareName
+    shareQuota: shareSizeGb
+    enabledProtocols: 'SMB'
+  }
+}]
 
 
 

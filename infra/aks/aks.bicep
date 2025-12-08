@@ -260,4 +260,4 @@ output kubeletUserAssignedIdentityName string = kubeletUserAssignedIdentity.outp
 output kedaUserAssignedIdentityName string = kedaUserAssignedIdentity.outputs.name
 output kedaUserAssignedIdentityClientId string = kedaUserAssignedIdentity.outputs.clientId
 output oidcIssuerProfileissuerUrl string = managedCluster.outputs.oidcIssuerUrl!
-output kedaFederatedIdentityName string = 'fed-${kedaUserAssignedIdentity.name}'
+output kedaFederatedIdentityName string = 'fed-${kedaUserAssignedIdentity.outputs.name}'

@@ -44,4 +44,4 @@ module acr 'br/public:avm/res/container-registry/registry:0.9.3' = {
   }
 }
 
-output name string = acr.name
+output name string = acr.outputs.name

@@ -19,4 +19,4 @@ module loganaltyics 'br/public:avm/res/operational-insights/workspace:0.14.0' = 
   }
 }
 
-output name string = loganaltyics.name
+output name string = loganaltyics.outputs.name

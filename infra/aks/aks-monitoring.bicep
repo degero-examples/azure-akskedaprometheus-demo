@@ -87,6 +87,6 @@ resource dataCollectionRuleAssociation 'Microsoft.Insights/dataCollectionRuleAss
   dependsOn: [ diagnosticSettings ]
   scope: managedCluster
   properties: {
-    dataCollectionRuleId: dataCollectionRule.id
+    dataCollectionRuleId: dataCollectionRule.outputs.resourceId
   }
 }
