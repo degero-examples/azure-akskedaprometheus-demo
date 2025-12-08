@@ -157,6 +157,7 @@ module aksMonitoring './aks/aks-monitoring.bicep' = {
 var storageAccountName = 'st${toLower(take('${appname}${env}${uniqueString(resourceGroup().id, env)}', 22))}'
 
 var fileShareNames = ['sh-aks-${appname}-appone-${env}', 'sh-aks-${appname}-apptwo-${env}']
+
 module aksFiles './storage/azurefiles.bicep' = {
   name: 'aksFiles'
   params: {
@@ -165,10 +166,11 @@ module aksFiles './storage/azurefiles.bicep' = {
     fileShareNames: fileShareNames
     tags: tags
     deletedFileRetentionDays: 0 // disable delete retention, > 0 enables it
-    shareSizeGb: 2
+    shareSizeGb: 1
     shareTier: 'Hot'
   }
 }
+
 var grafanaResourceName = 'amg${toLower(take(replace('${appname}${env}${uniqueString(resourceGroup().id)}', '-', ''), 20))}'
 
 module grafana './observability/grafana.bicep' = if (enableGrafana) {
