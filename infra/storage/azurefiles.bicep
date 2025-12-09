@@ -28,32 +28,12 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2025-01-01' = {
   tags: tags
 }
 
-// module storageAccountModule 'br/public:avm/res/storage/storage-account:0.29.0' = {
-//   name: 'storage-avm'
-//   params: {
-//     name: storageAccountName
-//     location: location
-//     tags: tags
-//     kind: isPremiumTier ? 'FileStorage': 'StorageV2'  // PAYG files share for Standard tier
-//     skuName: storageAccountSku
-//     publicNetworkAccess: 'Enabled' // Not recommended for PROD use
-//     minimumTlsVersion: 'TLS1_2'
-//     largeFileSharesState: 'Enabled'
-//     accessTier: isPremiumTier ? null : 'Hot'
-//   }
-// }
-
-// resource storageAccount 'Microsoft.Storage/storageAccounts@2025-01-01' existing = {
-//   dependsOn:[storageAccountModule]
-//   name: storageAccountName
-// }
-
 resource fileServices 'Microsoft.Storage/storageAccounts/fileServices@2025-01-01' = {
   parent: storageAccount
   name: 'default'
   properties: {
     protocolSettings: {
-      smb: isPremiumTier ? {
+      smb: isPremiumTier ?{
         multichannel: {
           enabled: false
         }
@@ -69,43 +49,13 @@ resource fileServices 'Microsoft.Storage/storageAccounts/fileServices@2025-01-01
   }
 }
 
-
-// #########
-// TODO use AVM when default accesstier issue resolved: https://github.com/Azure/bicep-registry-modules/issues/6092
-
-// This is painful duplication as bicep syntax requires params as object literal and accessTier can only be defined for non premium
-// setting accesstier: null will fail
-// module fileServicesSharesPremium 'br/public:avm/res/storage/storage-account/file-service/share:0.1.1' = [for (shareName, i) in fileShareNames: if (isPremiumTier == true) {
-//   dependsOn: [storageAccountModule, fileServices]
-//   name: 'fileservices-avm-${shareName}'
-//   params: {
-//     storageAccountName: storageAccountName
-//     name: shareName
-//     shareQuota: shareSizeGb
-//     enabledProtocols: 'SMB'
-//   }
-// }]
-
-// module fileServicesSharesRegular 'br/public:avm/res/storage/storage-account/file-service/share:0.1.1' = [for (shareName, i) in fileShareNames: if (isPremiumTier == false) {
-//   dependsOn: [storageAccountModule, fileServices]
-//   name: 'fileservices-avm-${shareName}'
-//   params: {
-//     storageAccountName: storageAccountName
-//     name: shareName
-//     shareQuota: shareSizeGb
-//     enabledProtocols: 'SMB'
-//     accessTier: shareTier 
-//   }
-// }]
-
-// TODO remove below once above issue fixed in AVM
 // Create two file shares with different names for each app (one, two)
 resource fileServicesShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2025-01-01' = [for shareName in fileShareNames: {
   parent: fileServices
   name: shareName
   properties: isPremiumTier ? {
-    provisionedIops: 4024
-    provisionedBandwidthMibps: 228
+    provisionedIops: 1205
+    provisionedBandwidthMibps: 81
     shareQuota: shareSizeGb
     enabledProtocols: 'SMB'
   } : {
