@@ -38,6 +38,7 @@ If not you can copy .env.azure.sample to .env.azure adjust the names as set in y
 source .env.azure
 export PROMETHEUSADDRESS=$(az monitor account show -n amw-$APPNAME-$ENV -g $RESOURCE_GROUP --query "metrics.prometheusQueryEndpoint" -o tsv)
 export AZURE_TENANT_ID=$(az account show --query "tenantId" -o tsv)
+export KEDAUSERASSIGNEDIDENTITYCLIENTID=$(az identity show -n mi-keda-aks-$APPNAME-$ENV -g $RESOURCE_GROUP --query clientId -o tsv)
 ```
 
 Configurable options:

@@ -67,7 +67,7 @@ module dataCollectionRule 'br/public:avm/res/insights/data-collection-rule:0.9.0
 var logworkspaceId = resourceId(resourceGroup().name, 'Microsoft.OperationalInsights/workspaces', logWorkspaceName)
 
 resource dcr 'Microsoft.Insights/dataCollectionRules@2023-03-11' existing = {
-  name: dataCollectionRule.name
+  name: 'dcr-${clustername}'
 }
 
 // AVM not used as no tags param
