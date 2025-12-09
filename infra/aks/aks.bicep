@@ -89,17 +89,12 @@ module managedCluster 'br/public:avm/res/container-service/managed-cluster:0.11.
         mode: 'System'
         osType: 'Linux'
         osSKU: 'AzureLinux'
-        upgradeSettings: {
-          maxSurge: '10%'
-          maxUnavailable: '0'
-        }
+        maxSurge: '10%'
         enableFIPS: false
-        securityProfile: {
-          enableVTPM: false
-          enableSecureBoot: false
-        }
+        enableVTPM: false
+        enableSecureBoot: false
         availabilityZones: null
-        vnetSubnetID: enablePrivateNetwork ? privateVNetSubnetId : null
+        vnetSubnetResourceId: enablePrivateNetwork ? privateVNetSubnetId : null
       }
     ]
     aksServicePrincipalProfile: {
