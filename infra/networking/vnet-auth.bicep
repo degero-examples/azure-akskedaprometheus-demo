@@ -16,6 +16,8 @@ resource vnet 'Microsoft.Network/virtualNetworks@2024-07-01' existing = {
 var roleObj = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roleIds.Networking['Network Contributor'])
 
 var networkContribRole = 'Network Contributor'
+
+// No AVM equivalent
 resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(appname, env, principalName, networkContribRole)
   scope: vnet

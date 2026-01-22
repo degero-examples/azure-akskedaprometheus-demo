@@ -1,15 +1,15 @@
 param name string
 param tags object
 
-resource nsg 'Microsoft.Network/networkSecurityGroups@2024-10-01' = {
-  name: name
-  location: resourceGroup().location
-  tags: tags
-  properties: {
+module nsg 'br/public:avm/res/network/network-security-group:0.5.2' = {
+  name: 'nsg-avm'
+  params: {
+    name: name
+    location: resourceGroup().location
+    tags: tags
     securityRules: [
       {
         name: 'AllowHttpInbound'
-        type: 'Microsoft.Network/networkSecurityGroups/securityRules'
         properties: {
           protocol: '*'
           sourcePortRange: '*'
@@ -27,7 +27,6 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2024-10-01' = {
       }
       {
         name: 'AllowHttpsInbound'
-        type: 'Microsoft.Network/networkSecurityGroups/securityRules'
         properties: {
           protocol: '*'
           sourcePortRange: '*'
@@ -45,7 +44,6 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2024-10-01' = {
       }
       {
         name: 'AllowHttpOutbound'
-        type: 'Microsoft.Network/networkSecurityGroups/securityRules'
         properties: {
           protocol: '*'
           sourcePortRange: '*'
@@ -63,7 +61,6 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2024-10-01' = {
       }
       {
         name: 'AllowHttpsOutbound'
-        type: 'Microsoft.Network/networkSecurityGroups/securityRules'
         properties: {
           protocol: '*'
           sourcePortRange: '*'
@@ -83,4 +80,4 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2024-10-01' = {
   }
 }
 
-output id string = nsg.id 
+output id string = nsg.outputs.resourceId
