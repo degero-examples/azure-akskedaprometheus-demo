@@ -17,7 +17,7 @@ hooks:
     continueOnError: false
     interactive: true
     shell: sh
-    run: chmod +x azd-hooks/preprovision.sh && azd-hooks/postprovision.sh
+    run: chmod +x azd-hooks/postprovision.sh && azd-hooks/postprovision.sh
 infra:
   provider: bicep
   path: infra

@@ -120,7 +120,7 @@ Follow the workload deploy [README.md](./workload/README.md)
 
 - [AZ Developer CLI](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/install-azd) and run 
 
-
+- Bash
 
 **Deploy**
 
