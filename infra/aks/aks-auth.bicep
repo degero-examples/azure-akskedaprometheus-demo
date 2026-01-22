@@ -11,9 +11,10 @@ resource aksUserAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentiti
 
 // Assign Managed Identity Operator role to the AKS cluster identity so it can assign the kubelet identity to nodes
 var roleIds = loadJsonContent('../_defs/roles.json')
+
+// No AVM equivalent for scoping to a identity
 resource kubeletRoleAssignemnt 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(clusterIdentityName, kubeletUserAssignedIdentity.name, 'Managed Identity Operator')
-
   scope: kubeletUserAssignedIdentity
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roleIds.Identity['Managed Identity Operator'])

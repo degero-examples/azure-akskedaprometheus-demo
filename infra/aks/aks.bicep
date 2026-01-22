@@ -1,7 +1,6 @@
 param clustername string
 param tags object
 param logWorkspaceName string
-param monitorWorkspaceName string
 param clusterSKU string
 param nodePools array
 param agentPoolMaxCount int
@@ -12,105 +11,7 @@ param enableAKSAppRoutingAddon bool
 
 var location string = resourceGroup().location
 
-resource dataCollectionEndpoint 'Microsoft.Insights/dataCollectionEndpoints@2023-03-11' = {
-  name: 'dce-${clustername}'
-  location: location
-  kind: 'Linux'
-  properties: {
-    networkAcls: {
-      publicNetworkAccess: 'Enabled'
-    }
-  }
-  tags: tags
-}
-
-resource dataCollectionRule 'Microsoft.Insights/dataCollectionRules@2023-03-11' = {
-  name: 'dcr-${clustername}'
-  kind: 'Linux'
-  location: location
-  properties: {
-    dataCollectionEndpointId: dataCollectionEndpoint.id
-    dataSources: {
-      prometheusForwarder: [
-        {
-          name: 'PrometheusDataSource'
-          streams: [
-            'Microsoft-PrometheusMetrics'
-          ]
-          labelIncludeFilter: {}
-        }
-      ]
-    }
-    destinations: {
-      monitoringAccounts: [
-        {
-          accountResourceId: resourceId(resourceGroup().name, 'Microsoft.Monitor/accounts', monitorWorkspaceName)
-          name: monitorWorkspaceName
-        }
-      ]
-    }
-    dataFlows: [
-      {
-        streams: [
-          'Microsoft-PrometheusMetrics'
-        ]
-        destinations: [
-          monitorWorkspaceName
-        ]
-      }
-    ]
-  }
-  tags: tags
-}
-
-var logworkspaceId = resourceId(resourceGroup().name, 'Microsoft.OperationalInsights/workspaces', logWorkspaceName)
-
-resource diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  scope: dataCollectionRule
-  name: 'default'
-  properties: {
-    workspaceId: logworkspaceId
-    logs: [
-      // enable these as preferred
-      // {
-      //   categoryGroup: 'allLogs'
-      //   enabled: true  
-      // }
-      // {
-      //   category: 'cluster-autoscaler'
-      //   enabled: true
-      // }
-      // {
-      //   category: 'kube-controller-manager'
-      //   enabled: true
-      // }
-      // {
-      //   category: 'kube-audit-admin'
-      //   enabled: true
-      // }
-      // {
-      //   category: 'guard'
-      //   enabled: true
-      // }
-      // {
-      //   category: 'kube-scheduler'
-      //   enabled: false // Only enable while tuning or triaging issues with scheduling. On a normally operating cluster there is minimal value, relative to the log capture cost, to keeping this always enabled.
-      // }
-    ]
-    logAnalyticsDestinationType: 'AzureDiagnostics'
-  }
-}
-
-resource dataCollectionRuleAssociation 'Microsoft.Insights/dataCollectionRuleAssociations@2023-03-11' = {
-  name: 'dcra-${clustername}'
-  dependsOn: [ diagnosticSettings ]
-  scope: managedCluster
-  properties: {
-    dataCollectionRuleId: dataCollectionRule.id
-  }
-}
-
-// AKS cluster User assigned identity
+// AKS cluster User assigned identity cant use AVM due to bicep depencency syntax issue
 resource aksUserAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2025-01-31-preview' = {
   name: 'mi-${clustername}'
   location: location
@@ -118,18 +19,24 @@ resource aksUserAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentiti
 }
 
 // Kubelenet User assigned identity
-resource kubeletUserAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2025-01-31-preview' = {
-  name: 'mi-kubelet-${clustername}'
-  location: location
-  tags: tags
+module kubeletUserAssignedIdentity 'br/public:avm/res/managed-identity/user-assigned-identity:0.4.2' = {
+  name: 'ident-avm-mi-kubelet-${clustername}'
+  params: {
+    name: 'mi-kubelet-${clustername}'
+    location: location
+    tags: tags
+  }
 }
 
 // Workload User assigned identity for keda
-resource kedaUserAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2025-01-31-preview' = {
-  dependsOn: [ managedCluster]
-  name: 'mi-keda-${clustername}'
-  location: location
-  tags: tags
+module kedaUserAssignedIdentity 'br/public:avm/res/managed-identity/user-assigned-identity:0.4.2' = {
+  name: 'ident-avm-mi-keda-${clustername}'
+  dependsOn: [ managedCluster ]
+  params: {
+    name: 'mi-keda-${clustername}'
+    location: location
+    tags: tags
+  }
 }
 
 // Assign Roles eg Managed Identity Operator to allow AKS to assign kubelet identity to nodes
@@ -137,10 +44,13 @@ module kubeletRoleAssignemnt 'aks-auth.bicep' = {
   name: 'kubeletRoleAssignemnt-${clustername}'
   params: {
     clusterIdentityName: aksUserAssignedIdentity.name
-    kubeletIdentityName: kubeletUserAssignedIdentity.name
+    kubeletIdentityName: kubeletUserAssignedIdentity.outputs.name
   }
 }
 
+var logworkspaceId = resourceId(resourceGroup().name, 'Microsoft.OperationalInsights/workspaces', logWorkspaceName)
+
+// Bug with AVM and vnet not in MC rg, using regular resource.
 resource managedCluster 'Microsoft.ContainerService/managedClusters@2025-07-02-preview' = {
   name: clustername
   dependsOn: [ kubeletRoleAssignemnt ]
@@ -277,9 +187,9 @@ resource managedCluster 'Microsoft.ContainerService/managedClusters@2025-07-02-p
     disableLocalAccounts: false
     identityProfile: { 
       kubeletIdentity: {
-        resourceId: kubeletUserAssignedIdentity.id
-        clientId: kubeletUserAssignedIdentity.properties.clientId
-        objectId: kubeletUserAssignedIdentity.properties.principalId
+        resourceId: kubeletUserAssignedIdentity.outputs.resourceId
+        clientId: kubeletUserAssignedIdentity.outputs.clientId
+        objectId: kubeletUserAssignedIdentity.outputs.principalId
       }
     }
     ingressProfile: {
@@ -399,12 +309,17 @@ resource aksManagedNodeOSUpgradeSchedule 'Microsoft.ContainerService/managedClus
   }
 }
 
+resource kedaIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2025-01-31-preview' existing = {
+  dependsOn: [ kedaUserAssignedIdentity ]
+  name: 'mi-keda-${clustername}'
+}
+
 // Create federated identity needed for keda workload to access azure monitor
 resource federatedCredential 'Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdentityCredentials@2023-01-31' = {
     name: 'fed-${kedaUserAssignedIdentity.name}'
-    parent: kedaUserAssignedIdentity
+    parent: kedaIdentity
     properties: {
-        issuer: managedCluster.properties.oidcIssuerProfile.issuerURL
+        issuer: managedCluster.properties.oidcIssuerProfile.issuerURL!
         subject: 'system:serviceaccount:keda:keda-operator'
         audiences: [
             'api://AzureADTokenExchange'
@@ -413,8 +328,8 @@ resource federatedCredential 'Microsoft.ManagedIdentity/userAssignedIdentities/f
 }
 
 output aksUserAssignedIdentityName string = aksUserAssignedIdentity.name
-output kubeletUserAssignedIdentityName string = kubeletUserAssignedIdentity.name
-output kedaUserAssignedIdentityName string = kedaUserAssignedIdentity.name
-output kedaUserAssignedIdentityClientId string = kedaUserAssignedIdentity.properties.clientId
-output oidcIssuerProfileissuerUrl string = managedCluster.properties.oidcIssuerProfile.issuerURL
-output kedaFederatedIdentityName string = 'fed-${kedaUserAssignedIdentity.name}'
+output kubeletUserAssignedIdentityName string = kubeletUserAssignedIdentity.outputs.name
+output kedaUserAssignedIdentityName string = kedaUserAssignedIdentity.outputs.name
+output kedaUserAssignedIdentityClientId string = kedaUserAssignedIdentity.outputs.clientId
+output oidcIssuerProfileissuerUrl string = managedCluster.properties.oidcIssuerProfile.issuerURL!
+output kedaFederatedIdentityName string = 'fed-${kedaUserAssignedIdentity.outputs.name}'

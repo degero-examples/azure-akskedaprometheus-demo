@@ -3,21 +3,17 @@ param tags object
 param name string
 param subnets array
 
-resource vnet 'Microsoft.Network/virtualNetworks@2024-10-01' = {
-  name: name
-  location: resourceGroup().location
-  tags: tags
-  properties: {
-    addressSpace: {
-      addressPrefixes: [
-        networkAddressSpace
-      ]
-    }
-    privateEndpointVNetPolicies: 'Disabled'
+module vnet 'br/public:avm/res/network/virtual-network:0.7.1' = {
+  name: 'vnet-avm'
+  params: {
+    name: name
+    location: resourceGroup().location
+    tags: tags
+    addressPrefixes: [
+      networkAddressSpace
+    ]
     subnets: subnets
-    virtualNetworkPeerings: []
-    enableDdosProtection: false
   }
 }
 
-output aksSubnetId string = vnet.properties.subnets[0].id
+output aksSubnetId string = vnet.outputs.subnetResourceIds[0]

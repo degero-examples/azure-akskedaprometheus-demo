@@ -75,4 +75,6 @@ if [ "${ACRRESOURCENAME:-}" != "" ]; then
   echo -e "Azure container registry hostname: $ACRRESOURCENAME.azurecr.io"
   echo -e ""
 fi
+echo -e "To update deployment - run update-azure-workload.sh ==="
+  echo -e ""
 echo -e "To remove deployment - run undeploy-azure-workload.sh ==="
