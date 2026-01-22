@@ -1,10 +1,12 @@
-# AKS KEDA + Prometheus autoscaler demo
+# Azure Kubernetes + KEDA + Prometheus autoscaler demo
 
 
 > **⚠️ IMPORTANT ⚠️**  
 > 
-> This setup is designed for ease of use and demonstration purposes only. It is **not security hardened** and is **not suitable for production environments**.
+> This setup is designed for ease of use and demonstration purposes only. 
 >
+> It is **not security hardened** and is **not suitable for production environments**.
+> 
 
 
 This is a demonstration of a multi app (2) deployment in Kubernetes with KEDA autoscaling on prometheus metrics.
@@ -79,80 +81,108 @@ Follow the workload deploy [README.md](./workload/README.md)
 
 ### Azure
 
+
+**⚠️ IMPORTANT ⚠️** 
+
+    Resources in Azure (primarily the nodepool VMs) cost money, use with caution and stop / delete AKS or the whole RG when not using.
+    
+    Ensure you have contributor access to the Azure subscription
+
+
+
 #### Azure Developer CLI
 
-> **⚠️ IMPORTANT ⚠️** 
->
-> You will not be granted access to Grafana if you choose to enable when installing.
-> 
-> Either alter /infra/main-azd.parameters.json 'grafanaUsers' property with array items like:
-> 
-> { "name": "", "role": "Grafana Admin", "principalId": "", "objectType": "User" }
-> 
-> { "name": "", "role": "Grafana Editor", "principalId": "", "objectType": "User" }
-> 
-> { "name": "", "role": "Grafana Viewer", "principalId": "", "objectType": "User" }
-> 
-> { "name": "", "role": "Grafana Limited Viewer", "principalId": "", "objectType": "User" }
->
-> You can get your principalId with: az ad user list -o tsv --query "[?mail=='<youremail>'].id" -o tsv
->
-> OR
->
->grant access following this [MSLearn Guide](https://learn.microsoft.com/en-us/azure/managed-grafana/how-to-manage-access-permissions-users-identities)
-> 
+
+**⚠️ IMPORTANT ⚠️** 
+
+    You will not be granted access to Grafana if you choose to enable when installing.
+    
+    Either alter /infra/main-azd.parameters.json 'grafanaUsers' property with array items like:
+    > 
+    { "name": "", "role": "Grafana Admin", "principalId": "", "objectType": "User" }
+    > 
+    { "name": "", "role": "Grafana Editor", "principalId": "", "objectType": "User" }
+
+    { "name": "", "role": "Grafana Viewer", "principalId": "", "objectType": "User" }
+
+    { "name": "", "role": "Grafana Limited Viewer", "principalId": "", "objectType": "User" }
+
+    You can get your principalId with: az ad user list -o tsv --query "[?mail=='<youremail>'].id" -o tsv
+
+    **OR**
+
+    grant access following this [MSLearn Guide](https://learn.microsoft.com/en-us/azure/managed-grafana/how-to-manage-access-permissions-users-identities)
+ 
+
+**Prereqs**
+
+- [AZ CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest) and logged into azure (az login)
+
+- [AZ Developer CLI](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/install-azd) and run 
 
 
 
-Install [AZ CLI installed](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest) and logged into azure (az login)
+**Deploy**
 
-install [AZD CLI](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/install-azd)
-  
 In bash
 
 ```sh
-azd init
-azd up
+az login (if not logged in)
+az bicep install (if not already installed)
+az bicep upgrade
+azd init (follow the prompts, environment = rg name)
+azd up (to deploy)
 ```
 
 To access the app and use, see workload [README.md](./workload/README.md#check-system-is-running-correctly)
 
-You can also use /scripts to update the workload or undeploy from AKS
+You can also use /scripts/update-azure-workload.sh to update the workload with your helm chart changes
 
-#### Manual deployment scripts
+**Undeploy**
 
-IMPORTANT: Resources in Azure (primarily the nodepool VMs) cost money, use with caution and stop / delete AKS or the whole RG when not using.
+In bash
+
+```sh
+azd down
+```
+
+
+#### Deployment scripts / Manual deployment
+
 
 To deploy to Azure AKS:
 
 - Follow the infra deploy [README.md](./infra/README.md)
 - Then the workload deploy [README.md](./workload/README.md)
 
-## Azure Container Registry
+## Optional Features
 
-One of the options is to enable Azure Container Registry (ACR) on installation. You can push an image to ACR and alter the workload/values-base.yaml for your desired image. Permissions are in place for AKS to pull from ACR however you will need to grant yourself 'AcrPush' Role on ACR to Push an image. To configure and connect to ACR see the [MSLearn ACR Authentication doco](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication?tabs=azure-cli#individual-login-with-azure-ad)
+### Azure Container Registry
 
-## Grafana
+One of the options is to enable AKS to use Azure Container Registry (ACR) on installation. You can push an image to ACR and alter the workload/values-base.yaml for your desired image. Permissions are in place for AKS to pull from ACR however you will need to grant yourself 'AcrPush' Role on ACR to Push an image. To configure and connect to ACR see the [MSLearn ACR Authentication doco](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-authentication?tabs=azure-cli#individual-login-with-azure-ad)
 
-If you enabled grafana during installation the Azure Monitor Prometheus metrics endpoint is already connected. 
-Here are some useful dashboards related to each of the configuration scenarios
 
-### Nginx ingress controller dashboards
+
+### Grafana
+
+If you enabled grafana during installation the Azure Monitor Prometheus metrics endpoint is already connected. All you need to do is add dashboards, here are some useful dashboards related to each of the configuration scenarios:
+
+#### Nginx ingress controller dashboards
 
 https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/grafana/dashboards/nginx.json
 
 https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/grafana/dashboards/request-handling-performance.json
 
 
-### Nginx exportor metrics (when using VNET+load balancer 'enablePrivateNetwork=true')
+#### Nginx exportor metrics (when using VNET+load balancer 'enablePrivateNetwork=true')
 
 https://raw.githubusercontent.com/nginx/nginx-prometheus-exporter/refs/heads/main/grafana/dashboard.json
 
 https://grafana.com/grafana/dashboards/14900-nginx/
 
 
-### KEDA metrics dashboard:
+#### KEDA metrics dashboard:
 
-set the namespace to default
+When using, set the namespace to 'default'
 
 https://raw.githubusercontent.com/kedacore/keda/refs/heads/main/config/grafana/keda-dashboard.json

@@ -42,6 +42,25 @@ param nodePools array
 @description('Array of userIds and Roles to access Grafana')
 param grafanaUsers array
 
+@description('Storage account SKU')
+@allowed([
+  'Standard_LRS'
+  'Standard_ZRS'
+  'Standard_GRS'
+  'Standard_GZRS'
+  'Standard_RAGRS'
+  'Standard_RAGZRS'
+  'StandardV2_LRS'
+  'StandardV2_ZRS'
+  'StandardV2_GRS'
+  'StandardV2_GZRS'
+  'Premium_LRS'
+  'Premium_ZRS'
+  'PremiumV2_LRS'
+  'PremiumV2_ZRS'
+])
+param storageAccountSKU string
+
 var tags object = {
   environment: environmentName
   appname: appname
@@ -60,6 +79,7 @@ module main 'main.bicep' = {
   name: 'main'
   scope: rg
   params: {
+    storageAccountSku: storageAccountSKU
     agentPoolVMSize: vmSize
     grafanaUsers: grafanaUsers
     appname: appname
