@@ -127,11 +127,19 @@ Follow the workload deploy [README.md](./workload/README.md)
 In bash
 
 ```sh
-az login (if not logged in)
-az bicep install (if not already installed)
+(if not logged in)
+az login
+
+(if not already installed)
+az bicep install 
+
 az bicep upgrade
-azd init (follow the prompts, environment = rg name)
-azd up (to deploy)
+
+(to init the .azure folder env settings, follow the prompts, environment = rg name)
+azd init 
+
+(to deploy, this will take several minutes then you will be prompted for a k8s workload paramter)
+azd up 
 ```
 
 To access the app and use, see workload [README.md](./workload/README.md#check-system-is-running-correctly)
