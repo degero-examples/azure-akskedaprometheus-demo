@@ -2,7 +2,8 @@
 
 ## Important
 
-This is setup for ease of use/low cost trialing and is not security hardended nor suited for PROD use. Look at the [AKS baseline](https://github.com/mspnp/aks-baseline/blob/main/README.md) cluster deployment details for bicep with 'prod ready' cluster configurations. You could adopt those settings in if you wish to fork this. 
+This is setup for ease of use/low cost trialing and scaling testing. Look at the [AKS baseline](https://github.com/mspnp/aks-baseline/blob/main/README.md) cluster deployment details for bicep with 'prod ready' cluster configurations.
+
 
 ## Resources
 
