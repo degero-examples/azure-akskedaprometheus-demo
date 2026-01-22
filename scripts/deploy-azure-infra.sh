@@ -21,7 +21,7 @@ az group create -l "$LOCATION" -n "$RESOURCE_GROUP"
 
 # take outputs from below and write them to ../scripts/.env.azure
 echo "Deploying bicep template..."
-az deployment group create -g "$RESOURCE_GROUP" --template-file main.bicep --parameters default.bicepparam || { echo "Deployment failed."; exit 1; }
+az deployment group create -g "$RESOURCE_GROUP" --template-file ../infra/main.bicep --parameters ../infra/default.bicepparam || { echo "Deployment failed."; exit 1; }
 
 # Get all output names
 output_names=$(az deployment group show \
@@ -31,7 +31,7 @@ output_names=$(az deployment group show \
   -o tsv)
 
 # Create the env file header
-cat > ../scripts/.env.azure << 'EOF'
+cat > ./.env.azure << 'EOF'
 #!/bin/bash
 # Auto-generated from Azure bicep deployment outputs
 
@@ -51,6 +51,6 @@ for output_name in $output_names; do
   
 done
 
-echo "All environment variables written to ../scripts/.env.azure"
+echo "All environment variables written to /scripts/.env.azure"
 echo ""
 echo "Run /scripts/deploy-azure-workload.sh to deploy the dependencies and worklaod to AKS"

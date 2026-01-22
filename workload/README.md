@@ -138,9 +138,9 @@ There are a few configuration options .env.azure you can adjust to your liking a
 
 Also note when not using a private network this deployment uses a basic nginx ingress controller deployment /cluster-dependencies/general/ingress-nginx as an alternate to the AKS app routing addon. You can use this addon, however you will need a register a DNS A record pointing to the ingress IP in order for ngxin to emit metrics that are used for scaling. You can get this IP by running 'kubectl get ingress' (it takes a few minutes to provision after deploy).
 
-If you did not deploy /infra with /infra/deploy-bicep.sh:
+If you did not deploy /infra with /scripts/deploy-azure-infra.sh:
 
-- cp .env.azure.sample .env.azure and alter any settings in .env.azure (if you did not deploy infra with ./infra/deploy-bicep.sh which generates it)
+- cp .env.azure.sample .env.azure and alter any settings in .env.azure
 - Add the nginx ingress controller (if you did not set enablePrivateNetwork=true in your bicep parameters. Alternatively you can use the AKS app routing managed module by changing your .env.azure settings. It does the same thing but requires you have a hostname to point to the IP)
 
 Using bash run

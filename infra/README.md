@@ -25,11 +25,17 @@ This is setup for ease of use/low cost trialing and is not security hardended no
 
 ## Prereqs
 
+- Contributor role on target Azure subscription
+- Bash Shell
 - [AZ CLI installed](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest) and logged into azure (az login)
 - az bicep install
 - az bicep upgrade
 
-## Configuration
+## Auto Deploy
+
+See guide in project [README.md](../README.md) to auto deploy using Azure Developer CLI
+
+## Manual Deploy
 
 Copy default.bicepparam.sample to default.bicepparam and make adjustments as needed:
 
@@ -39,22 +45,14 @@ Copy default.bicepparam.sample to default.bicepparam and make adjustments as nee
 - If you set enableAKSAppRoutingAddon=true do not set enablePrivateNetwork=true
 - You can alter the appname / env to your liking (ensure you follow the notes in the workload to update your env file with these)
 
-## Auto Deploy
-
-See guide in project [README.md](../README.md) to auto deploy using Azure Developer CLI
-
-## Manual Deploy
-
-Firstly ensure you:
+Decide on Naming/Location:
 - Based on preference, to keep in naming conventions set your resource group name below based on your env / appname choices above in the syntax rg-{appname}-{env}
-- cp default.bicepparam.sample default.bicepparam
-- update settings in default.bicepparam (eg: ingress or loadbalancer, grafana, acr etc)
-- Have contributor role on target subscription
 - decide on a location, you can get a list with 'az account list-locations --query "[].name" --output tsv'
-- run /scripts/deploy-bicep.sh
+
+Run /scripts/deploy-azure-infra.sh
 
 ## After Deployment
 
-Go to the /workload folder and follow the steps in the [README.md](../workload/README.md)
+Follow the steps in the [README.md](../workload/README.md) to deploy the workload
 
 When you are done testing the deployment you can either stop the AKS instance or delete the whole resource group to not incur unwanted costs (note there are other resources: storage, public IP etc that will have costs even if you stop AKS).
