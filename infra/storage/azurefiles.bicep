@@ -9,12 +9,12 @@ param deletedFileRetentionDays int = 0
 param storageAccountSku string = 'Standard_LRS'
 
 var location = resourceGroup().location
-var isPremiumTier = contains(storageAccountSku, 'Premium') 
+var isPremiumTier = startsWith(storageAccountSku, 'Premium') 
 
-resource storageAccount 'Microsoft.Storage/storageAccounts@2025-01-01' = {
+resource storageAccount 'Microsoft.Storage/storageAccounts@2025-06-01' = {
   name: storageAccountName
   location: location
-  kind: isPremiumTier ? 'FileStorage': 'StorageV2'  // PAYG files share for Standard tier
+  kind: isPremiumTier || startsWith(storageAccountSku, 'StandardV2_') ? 'FileStorage': 'StorageV2'  // PAYG files share for Standard tier
   sku: {
     name: storageAccountSku
   }
@@ -22,18 +22,18 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2025-01-01' = {
       publicNetworkAccess: 'Enabled' // Not recommended for PROD use
       minimumTlsVersion: 'TLS1_2'
       largeFileSharesState: 'Enabled'
-    }, isPremiumTier ? {} : {
+    }, isPremiumTier ? { } : {
     accessTier: 'Hot'
   })
   tags: tags
 }
 
-resource fileServices 'Microsoft.Storage/storageAccounts/fileServices@2025-01-01' = {
+resource fileServices 'Microsoft.Storage/storageAccounts/fileServices@2025-06-01' = {
   parent: storageAccount
   name: 'default'
   properties: {
     protocolSettings: {
-      smb: isPremiumTier ?{
+      smb: isPremiumTier ? {
         multichannel: {
           enabled: false
         }
@@ -50,17 +50,21 @@ resource fileServices 'Microsoft.Storage/storageAccounts/fileServices@2025-01-01
 }
 
 // Create two file shares with different names for each app (one, two)
-resource fileServicesShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2025-01-01' = [for shareName in fileShareNames: {
+resource fileServicesShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2024-01-01' = [for shareName in fileShareNames: {
   parent: fileServices
   name: shareName
-  properties: isPremiumTier ? {
-    provisionedIops: 1205
-    provisionedBandwidthMibps: 81
+  properties: startsWith(storageAccountSku, 'PremiumV2_') || startsWith(storageAccountSku, 'StandardV2_') ? {
+    provisionedIops: 4024
+    provisionedBandwidthMibps: 228
     shareQuota: shareSizeGb
     enabledProtocols: 'SMB'
-  } : {
+  } : startsWith(storageAccountSku, 'Premium_') ? {
     shareQuota: shareSizeGb
     enabledProtocols: 'SMB'
-    accessTier: shareTier
-  }
+    } : {
+      shareQuota: shareSizeGb
+      enabledProtocols: 'SMB'
+      accessTier: shareTier
+    }
+  
 }]

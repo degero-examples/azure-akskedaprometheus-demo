@@ -67,13 +67,14 @@ module dataCollectionRule 'br/public:avm/res/insights/data-collection-rule:0.9.0
 var logworkspaceId = resourceId(resourceGroup().name, 'Microsoft.OperationalInsights/workspaces', logWorkspaceName)
 
 resource dcr 'Microsoft.Insights/dataCollectionRules@2023-03-11' existing = {
+  dependsOn: [ dataCollectionRule ]
   name: 'dcr-${clustername}'
 }
 
 // AVM not used as no tags param
 resource diagnosticSettings 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   scope: dcr
-  name: 'default'
+  name: 'aksdiagnosticSettings-${clustername}'
   properties: {
     workspaceId: logworkspaceId
     logs: diagnosticsRules

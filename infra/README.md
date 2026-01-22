@@ -23,6 +23,12 @@ This is setup for ease of use/low cost trialing and is not security hardended no
 - Custom resourcegroup MC-<clustername> used for cluster managed resources (load balancer, IP etc)
 - Due to the configuration limitation on AKS app routing addon not outputting nginx metrics without a hostname, non prod envs not using a private network can use the custom nginx ingress controller included (unless you want add DNS registrations for non-prod IPs) Ensure enableAKSAppRoutingAddon=false to make use of this.
 
+## Prereqs
+
+- [AZ CLI installed](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest) and logged into azure (az login)
+- az bicep install
+- az bicep upgrade
+
 ## Configuration
 
 Copy default.bicepparam.sample to default.bicepparam and make adjustments as needed:
@@ -44,11 +50,8 @@ Firstly ensure you:
 - cp default.bicepparam.sample default.bicepparam
 - update settings in default.bicepparam (eg: ingress or loadbalancer, grafana, acr etc)
 - Have contributor role on target subscription
-- [AZ CLI installed](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest) and logged into azure (az login)
-- az bicep install
-- az bicep upgrade
 - decide on a location, you can get a list with 'az account list-locations --query "[].name" --output tsv'
-- run ./deploy-bicep.sh
+- run /scripts/deploy-bicep.sh
 
 ## After Deployment
 

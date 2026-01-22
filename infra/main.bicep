@@ -166,7 +166,7 @@ module aksFiles './storage/azurefiles.bicep' = {
     fileShareNames: fileShareNames
     tags: tags
     deletedFileRetentionDays: 0 // disable delete retention, > 0 enables it
-    shareSizeGb: 1
+    shareSizeGb: startsWith(storageAccountSku, 'StandardV2') ? 5120 : startsWith(storageAccountSku, 'Standard_') ? 1 : startsWith(storageAccountSku, 'Premium_') ? 100 : 32 // Set minimum for Premium/Standard
     shareTier: 'Hot'
   }
 }

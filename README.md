@@ -94,20 +94,22 @@ One of the options is to enable Azure Container Registry (ACR) on installation. 
 If you enabled grafana during installation the Azure Monitor Prometheus metrics endpoint is already connected. 
 Here are some useful dashboards related to each of the configuration scenarios
 
-### nginx ingress controller dashboards
+### Nginx ingress controller dashboards
 
 https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/grafana/dashboards/nginx.json
 
 https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/grafana/dashboards/request-handling-performance.json
 
 
-### nginx exportor metrics (when using VNET+load balancer 'enablePrivateNetwork=true')
+### Nginx exportor metrics (when using VNET+load balancer 'enablePrivateNetwork=true')
 
 https://raw.githubusercontent.com/nginx/nginx-prometheus-exporter/refs/heads/main/grafana/dashboard.json
 
 https://grafana.com/grafana/dashboards/14900-nginx/
 
 
-## KEDA metrics dashboard (set the namespace to default):
+### KEDA metrics dashboard:
+
+set the namespace to default
 
 https://raw.githubusercontent.com/kedacore/keda/refs/heads/main/config/grafana/keda-dashboard.json
