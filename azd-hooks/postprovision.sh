@@ -14,6 +14,17 @@ azd env get-values > ./.env.azure
 
 # This is written for manual script runs in /scripts to access (eg undeploy)
 echo -e "${GREEN}=== Env vars updated to /scripts/.env.azure"
+echo -e ""
+echo -e "${GREEN}=== Installing local dependencies"
+
+# need helm and kubectl for workload deploy
+if ! bash ./install-local-dependencies.sh; then
+    echo -e "${GREEN}=== Local dependency install failed, exiting. ===${NC}" >&2
+    exit 1
+fi
+
+echo -e ""
+echo -e "${GREEN}=== Workload deployment starting"
 
 if ! bash ./deploy-azure-workload.sh; then
     echo -e "${GREEN}=== Workload deployment failed, exiting. ===${NC}" >&2
