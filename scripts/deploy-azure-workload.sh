@@ -18,6 +18,11 @@ else
 export INGRESS_HOST=
 fi
 
+# Check if user is logged in to Azure
+if ! az account show &> /dev/null; then
+    az login
+fi
+
 echo -e "${GREEN}=== Beginning Azure env setup and Workload deployment (this will take several minutes) ===${NC}"
 echo -e ""
 

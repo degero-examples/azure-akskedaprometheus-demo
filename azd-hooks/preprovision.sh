@@ -1,6 +1,11 @@
 #!/bin/bash
 # Pre-provision hook to setup dependencies
 
+# Check if user is logged in to Azure
+if ! az account show &> /dev/null; then
+    az login
+fi
+
 echo "Checking provider Microsoft.ContainerService is registered..."
 
 if [ "$(az provider show --namespace "Microsoft.CognitiveServices" --query "registrationState" -o tsv)" != "Registered" ]; then

@@ -6,9 +6,13 @@ You have the option to deploy locally (covered below) using Docker and KIND to t
 
 ## Prereqs
 
-- [Kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl/)
+- [Kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl/) 
 - [Helm](https://helm.sh/docs/intro/install/)
 - Bash shell
+
+## Prereqs install
+
+You can install Kubectl and Helm using the script [install-local-dependencies.sh](install-local-dependencies.sh)
 
 ## Configuration files
 
