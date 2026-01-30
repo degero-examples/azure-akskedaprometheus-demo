@@ -17,7 +17,40 @@ check_and_install_command() {
                     chmod 700 get_helm.sh
                     ./get_helm.sh
                 else
-                    sudo apt-get update && sudo apt-get install -y "$install_cmd"
+                    if [[ -f /etc/os-release ]]; then
+                    . /etc/os-release
+                    case $ID in
+                        ubuntu|debian|linuxmint)
+                            echo "Detected Debian-based distro ($ID). Installing with apt..."
+                            sudo apt update && sudo apt install -y "$package"
+                            ;;
+                        fedora)
+                            echo "Detected Fedora. Installing with dnf..."
+                            sudo dnf install -y "$package"
+                            ;;
+                        centos|rhel|rocky)
+                            echo "Detected RHEL/CentOS-based distro ($ID). Installing with dnf..."
+                            sudo dnf install -y "$package"
+                            ;;
+                        arch|manjaro)
+                            echo "Detected Arch-based distro ($ID). Installing with pacman..."
+                            sudo pacman -S --noconfirm "$package"
+                            ;;
+                        opensuse*|sles)
+                            echo "Detected SUSE-based distro ($ID). Installing with zypper..."
+                            sudo zypper install -y "$package"
+                            ;;
+                        alpine)
+                            echo "Detected Alpine. Installing with apk..."
+                            sudo apk add "$package"
+                            ;;
+                        *)
+                            echo "Unsupported Linux distro: $ID. Please install $package manually."
+                            ;;
+                    esac
+                    else
+                        echo "Cannot detect Linux distro (/etc/os-release not found). Skipping"
+                    fi
                 fi
                 ;;
             darwin)
