@@ -127,6 +127,9 @@ Follow the workload deploy [README.md](./workload/README.md)
 In bash
 
 ```sh
+(if using a browserless client)
+azd auth login --use-device-code
+
 (if not logged in)
 az login
 
