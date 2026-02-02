@@ -16,7 +16,7 @@ azd env get-values | Out-File .env.azure
 # This is written for manual script runs in /scripts to access (eg undeploy)
 Write-Host "=== Env vars updated to /scripts/.env.azure" -ForegroundColor Green
 
-& bash.exe .\deploy-azure-workload.sh
+& bash.exe --posix deploy-azure-workload.sh
 if ($LASTEXITCODE -ne 0) {
     Write-Host "=== Workload deployment failed, exiting. ===" -ForegroundColor Green
     exit 1

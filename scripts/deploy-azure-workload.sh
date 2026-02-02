@@ -2,7 +2,7 @@
 # Installation script for Azure cluster dependencies workload with deployment apps of nginx, KEDA and Prometheus
 
 set -a
-source .env.azure
+source ./.env.azure
 set +a
 
 export GREEN='\033[0;32m'
