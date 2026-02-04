@@ -44,6 +44,11 @@ kubectl wait --for=condition=ready pod -l app=prometheus -n monitoring --timeout
 if [ "${PRIVATE_NETWORK:-}" = "false" ]; then
     echo -e "${GREEN}=== Installing nginx ingress controller designed for KIND ===${NC}"
     kubectl apply -f ./kind/ingress-nginx.yaml
+    echo -e "${GREEN}=== Waiting for nginx ingress controller to be ready ===${NC}"
+    kubectl wait --namespace ingress-nginx \
+        --for=condition=ready pod \
+        --selector=app.kubernetes.io/component=controller \
+        --timeout=120s
 fi
 
 if [ "${PRIVATE_NETWORK:-}" = "true" ]; then
