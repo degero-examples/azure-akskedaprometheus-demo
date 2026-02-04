@@ -68,14 +68,14 @@ Due to an issue with helm / and the kubernetes API version in KIND you may see t
 
 ## Install with nginx ingress
 
-- run sh /localdev/create-localdev.sh and set prompts for github token as any text and privatenetwork to false
+- run sh localdev/create-localdev.sh and set prompts for github token as any text and privatenetwork to false
 - This will take several minutes
 - browse to localhost/app-one and localhost-app-two you should see "Hello from app-one/two!"
 
 
 ## Install with private network load balancer
 
-- run sh /localdev/create-localdev.sh and set prompts for github token as any text and privatenetwork to true
+- run sh localdev/create-localdev.sh and set prompts for github token as any text and privatenetwork to true
 - This will take several minutes 
 - In a Superuser/Administrator shell run:
 docker run --network host -v /var/run/docker.sock:/var/run/docker.sock cloud-controller-manager:v0.7.0 -enable-lb-port-mapping
@@ -127,7 +127,7 @@ there are sample grafana dashboards on the project root [README.md](../README.md
 
 ## Uninstall
 
-run /localdev/delete-localdev.sh
+run sh localdev/delete-localdev.sh
 
 ## Apply HELM chart in Azure
 
@@ -151,7 +151,7 @@ Using bash run
 
 - az extension add --name aks-preview (for cluster autoscaler)
 - az extension update --name aks-preview 
-- apply the workload: sh /scripts/deploy-azure-workload.sh enter any value for GITHUBTOKEN
+- apply the workload: sh scripts/deploy-azure-workload.sh enter any value for GITHUBTOKEN
 - az aks get-credentials -n <clustername> -g <resource_group>
 
 ### Check system is running correctly

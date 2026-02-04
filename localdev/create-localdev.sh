@@ -5,6 +5,7 @@
 export GREEN='\033[0;32m'
 export NC='\033[0m' # No Color
 
+cd "$(dirname "$0")" || exit 1
 read -p "Enter a value for GITHUBTOKEN (this is for demonstration use of a secret): " GITHUBTOKEN
 export GITHUBTOKEN
 read -p "Use private network (true/false): " PRIVATE_NETWORK
@@ -13,6 +14,8 @@ echo -e "${GREEN}=== Beginning Cluster creation and Workload Deployment (this wi
 echo -e ""
 echo -e "${GREEN}=== Creating KIND cluster ===${NC}"
 kind create cluster --config ./kind/kind-config.yaml
+echo -e "${GREEN}=== Switching your kubectl context to 'kind-kind' ===${NC}"
+kubectl config use-context kind-kind
 echo -e "${GREEN}=== Waiting for cluster to start up ===${NC}"
 kubectl wait --for=condition=Ready node kind-control-plane --timeout=180s
 
@@ -41,6 +44,11 @@ kubectl wait --for=condition=ready pod -l app=prometheus -n monitoring --timeout
 if [ "${PRIVATE_NETWORK:-}" = "false" ]; then
     echo -e "${GREEN}=== Installing nginx ingress controller designed for KIND ===${NC}"
     kubectl apply -f ./kind/ingress-nginx.yaml
+    echo -e "${GREEN}=== Waiting for nginx ingress controller to be ready ===${NC}"
+    kubectl wait --namespace ingress-nginx \
+        --for=condition=ready pod \
+        --selector=app.kubernetes.io/component=controller \
+        --timeout=120s
 fi
 
 if [ "${PRIVATE_NETWORK:-}" = "true" ]; then
@@ -57,8 +65,8 @@ else
     values_file="values-localdev-ingress.yaml"
 fi
 
-helm upgrade --install kedascalerapp ../workload/chart --namespace default --create-namespace -f ../workload/values-base.yaml -f ../workload/$values_file --set githubTokenSecret.token=$GITHUBTOKEN --set privateNetwork.enabled=$PRIVATE_NETWORK
+helm upgrade --install kedascalerapp ../workload/chart --namespace default --create-namespace -f ../workload/values-base.yaml -f ../workload/$values_file --set-string githubTokenSecret.token=$GITHUBTOKEN --set privateNetwork.enabled=$PRIVATE_NETWORK
 
 echo -e "${GREEN}=== Installiation complete! ===${NC}"
 echo -e ""
-echo -e "${GREEN}=== To remove cluster/deployment - run delete-localdev.sh ===${NC}"
+echo -e "${GREEN}=== To remove cluster/deployment - run sh localdev/delete-localdev.sh ===${NC}"
