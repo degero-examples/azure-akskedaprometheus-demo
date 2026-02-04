@@ -12,7 +12,7 @@ You have the option to deploy locally (covered below) using Docker and KIND to t
 
 ## Prereqs install
 
-You can install Kubectl and Helm using the script [install-local-dependencies.sh](install-local-dependencies.sh)
+You can install Kubectl and Helm using the script [install-local-dependencies.sh](../scripts/install-local-dependencies.sh)
 
 ## Configuration files
 
