@@ -5,6 +5,7 @@
 export GREEN='\033[0;32m'
 export NC='\033[0m' # No Color
 
+cd "$(dirname "$0")" || exit 1
 read -p "Enter a value for GITHUBTOKEN (this is for demonstration use of a secret): " GITHUBTOKEN
 export GITHUBTOKEN
 read -p "Use private network (true/false): " PRIVATE_NETWORK
@@ -13,6 +14,8 @@ echo -e "${GREEN}=== Beginning Cluster creation and Workload Deployment (this wi
 echo -e ""
 echo -e "${GREEN}=== Creating KIND cluster ===${NC}"
 kind create cluster --config ./kind/kind-config.yaml
+echo -e "${GREEN}=== Switching your kubectl context to 'kind-kind' ===${NC}"
+kubectl config use-context kind-kind
 echo -e "${GREEN}=== Waiting for cluster to start up ===${NC}"
 kubectl wait --for=condition=Ready node kind-control-plane --timeout=180s
 
@@ -61,4 +64,4 @@ helm upgrade --install kedascalerapp ../workload/chart --namespace default --cre
 
 echo -e "${GREEN}=== Installiation complete! ===${NC}"
 echo -e ""
-echo -e "${GREEN}=== To remove cluster/deployment - run delete-localdev.sh ===${NC}"
+echo -e "${GREEN}=== To remove cluster/deployment - run sh localdev/delete-localdev.sh ===${NC}"
