@@ -65,7 +65,7 @@ else
     values_file="values-localdev-ingress.yaml"
 fi
 
-helm upgrade --install kedascalerapp ../workload/chart --namespace default --create-namespace -f ../workload/values-base.yaml -f ../workload/$values_file --set githubTokenSecret.token=$GITHUBTOKEN --set privateNetwork.enabled=$PRIVATE_NETWORK
+helm upgrade --install kedascalerapp ../workload/chart --namespace default --create-namespace -f ../workload/values-base.yaml -f ../workload/$values_file --set-string githubTokenSecret.token=$GITHUBTOKEN --set privateNetwork.enabled=$PRIVATE_NETWORK
 
 echo -e "${GREEN}=== Installiation complete! ===${NC}"
 echo -e ""
