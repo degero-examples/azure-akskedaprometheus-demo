@@ -12,7 +12,7 @@ You have the option to deploy locally (covered below) using Docker and KIND to t
 
 ## Prereqs install
 
-You can install Kubectl and Helm using the script [install-local-dependencies.sh](install-local-dependencies.sh)
+You can install Kubectl and Helm using the script [install-local-dependencies.sh](../scripts/install-local-dependencies.sh)
 
 ## Configuration files
 
@@ -68,14 +68,14 @@ Due to an issue with helm / and the kubernetes API version in KIND you may see t
 
 ## Install with nginx ingress
 
-- run sh /localdev/deploy-localdev.sh and set prompts for github token as any text and privatenetwork to false
+- run sh /localdev/create-localdev.sh and set prompts for github token as any text and privatenetwork to false
 - This will take several minutes
 - browse to localhost/app-one and localhost-app-two you should see "Hello from app-one/two!"
 
 
 ## Install with private network load balancer
 
-- run sh /localdev/deploy-localdev.sh and set prompts for github token as any text and privatenetwork to true
+- run sh /localdev/create-localdev.sh and set prompts for github token as any text and privatenetwork to true
 - This will take several minutes 
 - In a Superuser/Administrator shell run:
 docker run --network host -v /var/run/docker.sock:/var/run/docker.sock cloud-controller-manager:v0.7.0 -enable-lb-port-mapping
