@@ -17,7 +17,7 @@ else
 fi
 
 helm upgrade --install $APPNAME ../workload/chart --namespace default  --create-namespace -f ../workload/values-base.yaml \
- -f ../workload/$values_file --set githubTokenSecret.token=$GITHUBTOKEN --set azureFilesSecret.accountKey=$AZFILESSECRET \
+ -f ../workload/$values_file --set-string githubTokenSecret.token=$GITHUBTOKEN --set azureFilesSecret.accountKey=$AZFILESSECRET \
  --set azureFilesSecret.accountName=$AZFILESACNAME --set workloadIdentity.clientId=$KEDAUSERASSIGNEDIDENTITYCLIENTID \
  --set kedaPrometheusAccess.serverAddress=$PROMETHEUSQUERYENDPOINT --set privateNetwork.enabled=$PRIVATE_NETWORK \
  --set ingress.ingressClassName=$ingress_class --set ingress.aksManaged=$USE_AKS_APP_ROUTING_ADDON \
