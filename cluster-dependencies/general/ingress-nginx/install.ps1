@@ -8,6 +8,7 @@ $NAMESPACE = "ingress-nginx"
 $RELEASE_NAME = "ingress-nginx-basic"
 $CHART_PATH = "."  # Assumes you're in the chart directory
 
+Write-Host ""
 Write-Host "===================================" -ForegroundColor Green
 Write-Host "NGINX Ingress Controller Installer" -ForegroundColor Green
 Write-Host "===================================" -ForegroundColor Green
