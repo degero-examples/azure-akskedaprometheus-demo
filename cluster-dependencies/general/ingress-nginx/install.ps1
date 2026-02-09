@@ -34,35 +34,35 @@ try {
     Write-Host "Error: Cannot connect to Kubernetes cluster" -ForegroundColor Red
     exit 1
 }
-Write-Host "✓ Connected to cluster" -ForegroundColor Green
+Write-Host "=== Connected to cluster ===" -ForegroundColor Green
 Write-Host ""
 
 # Add/update the ingress-nginx repository
-Write-Host "Adding ingress-nginx Helm repository..." -ForegroundColor Yellow
+Write-Host "=== Adding ingress-nginx Helm repository... ===" -ForegroundColor Yellow
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo update
-Write-Host "✓ Repository updated" -ForegroundColor Green
+Write-Host "=== Repository updated ===" -ForegroundColor Green
 Write-Host ""
 
 # Create namespace if it doesn't exist
-Write-Host "Creating namespace: $NAMESPACE" -ForegroundColor Yellow
+Write-Host "=== Creating namespace: $NAMESPACE ===" -ForegroundColor Yellow
 kubectl create namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
-Write-Host "✓ Namespace ready" -ForegroundColor Green
+Write-Host "=== Namespace ready ===" -ForegroundColor Green
 Write-Host ""
 
 # Update dependencies
-Write-Host "Updating Helm dependencies..." -ForegroundColor Yellow
+Write-Host "=== Updating Helm dependencies... ===" -ForegroundColor Yellow
 helm dependency update $CHART_PATH
-Write-Host "✓ Dependencies updated" -ForegroundColor Green
+Write-Host "=== Dependencies updated ===" -ForegroundColor Green
 Write-Host ""
 
 # Install or upgrade the chart
-Write-Host "Installing/Upgrading NGINX Ingress Controller..." -ForegroundColor Yellow
+Write-Host "=== Installing/Upgrading NGINX Ingress Controller... ===" -ForegroundColor Yellow
 helm upgrade --install $RELEASE_NAME $CHART_PATH `
     --namespace $NAMESPACE `
     --values "$CHART_PATH/values.yaml" `
     --wait `
     --timeout 5m
 
-Write-Host "✓ Installation complete" -ForegroundColor Green
+Write-Host "=== Installation complete ===" -ForegroundColor Green
 Write-Host ""
