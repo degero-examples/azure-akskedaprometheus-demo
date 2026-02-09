@@ -40,4 +40,4 @@ check_and_install_command() {
 }
 
 check_and_install_command "helm" "helm" "Helm.Helm"
-check_and_install_command "kubectl" "kubectl" "kubectl"
+check_and_install_command "kubectl" "kubectl" "Kubernetes.kubectl"

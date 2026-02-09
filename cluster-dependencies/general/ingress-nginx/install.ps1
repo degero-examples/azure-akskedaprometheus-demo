@@ -1,4 +1,3 @@
-#!/usr/bin/env pwsh
 # Installation script for basic NGINX Ingress Controller
 
 $ErrorActionPreference = "Stop"
