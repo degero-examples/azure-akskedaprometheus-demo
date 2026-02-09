@@ -193,7 +193,7 @@ module azureMonitorAuth './observability/monitor-auth.bicep' = {
   }
 }
 
-// Alow aks cluster access to vnet
+// Allow aks cluster access to vnet
 module vnetAuth './networking/vnet-auth.bicep' = if (enablePrivateNetwork) {
   name: 'vnetAuth'
   dependsOn: [

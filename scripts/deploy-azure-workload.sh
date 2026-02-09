@@ -47,7 +47,7 @@ cd ../../scripts || exit 1
 # add nginx ingress controller if required
 if [ "${PRIVATE_NETWORK:-}" = "false" ] && [ "${USE_AKS_APP_ROUTING_ADDON:-}" = "false" ]; then
 if ! bash ./_deploy-ingresscontroller.sh; then
-    echo -e "${GREEN}=== Igress controller deploy failed, exiting. ===${NC}" >&2
+    echo -e "${GREEN}=== Ingress controller deploy failed, exiting. ===${NC}" >&2
     exit 1
 fi
 fi
@@ -66,7 +66,7 @@ if ! bash ./_deploy-workload.sh values-azure.yaml; then
     exit 1
 fi
 
-echo -e "${GREEN}=== Installiation complete! ===${NC}"
+echo -e "${GREEN}=== Installation complete! ===${NC}"
 echo -e ""
 echo -e "Connect kubectl to your cluster with az aks get-credentials -n $CLUSTERNAME -g $RESOURCE_GROUP --overwrite-existing"
 echo -e ""

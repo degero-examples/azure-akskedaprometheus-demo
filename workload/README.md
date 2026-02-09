@@ -262,7 +262,7 @@ kubectl logs -f -n keda -l app=keda-operator
 
 Check the workload identity is correctly setup:
 ```
-kubectl describe po $KEDA_POD_ID -n keda
+kubectl describe pod $KEDA_POD_ID -n keda
 ```
 
 Check events from HPA for errors

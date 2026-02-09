@@ -11,14 +11,14 @@ param enableAKSAppRoutingAddon bool
 
 var location string = resourceGroup().location
 
-// AKS cluster User assigned identity cant use AVM due to bicep depencency syntax issue
+// AKS cluster User assigned identity cant use AVM due to bicep dependency syntax issue
 resource aksUserAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2025-01-31-preview' = {
   name: 'mi-${clustername}'
   location: location
   tags: tags
 }
 
-// Kubelenet User assigned identity
+// Kubelet User assigned identity
 module kubeletUserAssignedIdentity 'br/public:avm/res/managed-identity/user-assigned-identity:0.4.2' = {
   name: 'ident-avm-mi-kubelet-${clustername}'
   params: {
