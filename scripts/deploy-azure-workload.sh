@@ -4,7 +4,7 @@
 cd "$(dirname "$0")" || exit 1
 
 set -a
-source ./.env.azure
+. ./.env.azure
 set +a
 
 export GREEN='\033[0;32m'
