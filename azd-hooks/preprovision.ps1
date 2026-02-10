@@ -1,5 +1,11 @@
 # Pre-provision hook to setup dependencies
 
+# Check if user is logged in to Azure
+az account show 2>&1 | Out-Null
+if ($LASTEXITCODE -ne 0) {
+    az login
+}
+
 Write-Host "=== Checking provider Microsoft.ContainerService is registered..."  -ForegroundColor Green
 
 $registrationState = az provider show --namespace "Microsoft.ContainerService" --query "registrationState" -o tsv
