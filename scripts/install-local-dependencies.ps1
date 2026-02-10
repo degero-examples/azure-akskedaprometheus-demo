@@ -10,16 +10,39 @@ function Install-Helm {
     }
 
     Write-Host "Installing Dependency: helm..."
-    
-    # Windows
-    if (Test-CommandExists "winget") {
-        winget install Helm.Helm --accept-package-agreements
+    if ($IsWindows -or $env:OS -match "Windows") {
+        # Windows
+        if (Test-CommandExists "winget") {
+            winget install Helm.Helm --accept-package-agreements
+        }
+        elseif (Test-CommandExists "choco") {
+            choco install kubernetes-helm -y
+        }
+        else {
+            Write-Host "Please install winget or chocolatey, or manually install Helm from https://helm.sh/docs/intro/install/"
+        }
     }
-    elseif (Test-CommandExists "choco") {
-        choco install kubernetes-helm -y
+    elseif ($IsMacOS) {
+        # macOS
+        if (Test-CommandExists "brew") {
+            brew install kubectl
+        }
+        else {
+            Write-Host "Please install Homebrew first: https://brew.sh"
+        }
+    }
+    elseif ($IsLinux) {
+        # Linux
+        $stableVersion = Invoke-RestMethod -Uri "https://dl.k8s.io/release/stable.txt"
+        $kubectlUrl = "https://dl.k8s.io/release/$stableVersion/bin/linux/amd64/kubectl"
+        
+        Invoke-WebRequest -Uri $kubectlUrl -OutFile "./kubectl"
+        chmod +x ./kubectl
+        sudo mv ./kubectl /usr/local/bin/kubectl
+        kubectl version --client
     }
     else {
-        Write-Host "Please install winget or chocolatey, or manually install Helm from https://helm.sh/docs/intro/install/"
+        Write-Host "Unsupported operating system"
     }
 }
 
