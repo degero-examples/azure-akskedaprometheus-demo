@@ -25,7 +25,7 @@ function Install-Helm {
     elseif ($IsMacOS) {
         # macOS
         if (Test-CommandExists "brew") {
-            brew install kubectl
+            brew install helm
         }
         else {
             Write-Host "Please install Homebrew first: https://brew.sh"
@@ -33,13 +33,10 @@ function Install-Helm {
     }
     elseif ($IsLinux) {
         # Linux
-        $stableVersion = Invoke-RestMethod -Uri "https://dl.k8s.io/release/stable.txt"
-        $kubectlUrl = "https://dl.k8s.io/release/$stableVersion/bin/linux/amd64/kubectl"
-        
-        Invoke-WebRequest -Uri $kubectlUrl -OutFile "./kubectl"
-        chmod +x ./kubectl
-        sudo mv ./kubectl /usr/local/bin/kubectl
-        kubectl version --client
+        curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+        chmod 700 get_helm.sh
+        ./get_helm.sh
+        rm -rf ./get_helm.sh
     }
     else {
         Write-Host "Unsupported operating system"
@@ -77,12 +74,8 @@ function Install-Kubectl {
     }
     elseif ($IsLinux) {
         # Linux
-        $stableVersion = Invoke-RestMethod -Uri "https://dl.k8s.io/release/stable.txt"
-        $kubectlUrl = "https://dl.k8s.io/release/$stableVersion/bin/linux/amd64/kubectl"
-        
-        Invoke-WebRequest -Uri $kubectlUrl -OutFile "./kubectl"
-        chmod +x ./kubectl
-        sudo mv ./kubectl /usr/local/bin/kubectl
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
         kubectl version --client
     }
     else {
