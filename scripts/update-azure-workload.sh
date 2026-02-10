@@ -15,6 +15,8 @@ export GITHUBTOKEN
 
 export AZFILESSECRET=$(az storage account keys list --resource-group $RESOURCE_GROUP --account-name $AZFILESACNAME --query "[0].value" -o tsv)
 
+az aks get-credentials -n $env:CLUSTERNAME -g $env:RESOURCE_GROUP --overwrite-existing
+
 # Deploy workload
 if ! bash ./_deploy-workload.sh values-azure.yaml; then
     echo -e "${GREEN}=== Workload updated failed, exiting. ===${NC}" >&2
