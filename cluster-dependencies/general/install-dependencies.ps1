@@ -23,7 +23,7 @@ if ($LASTEXITCODE -ne 0) { exit 1 }
 Write-Host "=== Installing KEDA via Helm with promethus scrape annotations ===" -ForegroundColor Green
 Write-Host ""
 
-helm install --wait keda kedacore/keda --namespace keda --create-namespace --set serviceAccount.create=false --version 2.18.1 --set serviceAccount.name=keda-operator --set podIdentity.azureWorkload.enabled=true --set podIdentity.azureWorkload.clientId=$env:KEDAUSERASSIGNEDIDENTITYCLIENTID --set podIdentity.azureWorkload.tenantId=$env:AZURE_TENANT_ID --set meta.helm.sh/release-namespace=helm --set prometheus.operator.enabled=true --set prometheus.metricServer.enabled=true --set prometheus.operator.serviceMonitor.enabled=true --set prometheus.metricServer.serviceMonitor.enabled=true
+helm install --wait --timeout 8m keda kedacore/keda --namespace keda --create-namespace --set serviceAccount.create=false --version 2.18.1 --set serviceAccount.name=keda-operator --set podIdentity.azureWorkload.enabled=true --set podIdentity.azureWorkload.clientId=$env:KEDAUSERASSIGNEDIDENTITYCLIENTID --set podIdentity.azureWorkload.tenantId=$env:AZURE_TENANT_ID --set meta.helm.sh/release-namespace=helm --set prometheus.operator.enabled=true --set prometheus.metricServer.enabled=true --set prometheus.operator.serviceMonitor.enabled=true --set prometheus.metricServer.serviceMonitor.enabled=true
 if ($LASTEXITCODE -ne 0) { exit 1 }
 
 Write-Host "=== Patching KEDA prometheus scrape annotations ===" -ForegroundColor Green

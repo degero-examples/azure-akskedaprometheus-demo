@@ -14,7 +14,7 @@ helm install --wait prometheus-operator-crds prometheus-community/prometheus-ope
 echo -e ""
 echo -e "${GREEN}=== Installing KEDA via Helm with promethus scrape annotations ===${NC}"
 echo -e ""
-helm install --wait keda kedacore/keda --namespace keda --create-namespace --set serviceAccount.create=false --version 2.18.1 --set serviceAccount.name=keda-operator --set podIdentity.azureWorkload.enabled=true --set podIdentity.azureWorkload.clientId=$KEDAUSERASSIGNEDIDENTITYCLIENTID --set podIdentity.azureWorkload.tenantId=$AZURE_TENANT_ID --set meta.helm.sh/release-namespace=helm --set prometheus.operator.enabled=true --set prometheus.metricServer.enabled=true --set prometheus.operator.serviceMonitor.enabled=true --set prometheus.metricServer.serviceMonitor.enabled=true
+helm install --wait --timeout 8m keda kedacore/keda --namespace keda --create-namespace --set serviceAccount.create=false --version 2.18.1 --set serviceAccount.name=keda-operator --set podIdentity.azureWorkload.enabled=true --set podIdentity.azureWorkload.clientId=$KEDAUSERASSIGNEDIDENTITYCLIENTID --set podIdentity.azureWorkload.tenantId=$AZURE_TENANT_ID --set meta.helm.sh/release-namespace=helm --set prometheus.operator.enabled=true --set prometheus.metricServer.enabled=true --set prometheus.operator.serviceMonitor.enabled=true --set prometheus.metricServer.serviceMonitor.enabled=true
 kubectl patch deployment keda-operator -n keda -p '{"spec": {"template":{"metadata":{"annotations":{"prometheus.io/scrape":"true","prometheus.io/path":"/metrics","prometheus.io/port":"8080"}}}}}'
 echo -e ""
 echo -e "${GREEN}=== General k8s Cluster dependency deployment finished. ===${NC}"
