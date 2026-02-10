@@ -1,6 +1,8 @@
 #!/bin/bash
 # Installation script for Azure cluster dependencies workload with deployment apps of nginx, KEDA and Prometheus
 
+cd "$(dirname "$0")" || exit 1
+
 set -a
 source ./.env.azure
 set +a

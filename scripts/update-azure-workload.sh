@@ -1,5 +1,6 @@
 #!/bin/bash
 # Installation script for Azure workload with deployment apps of nginx, KEDA and Prometheus
+cd "$(dirname "$0")" || exit 1
 
 # Colors for output
 export GREEN='\033[0;32m'
