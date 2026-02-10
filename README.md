@@ -139,23 +139,14 @@ Follow the workload deploy [README.md](./workload/README.md)
 
 - [AZ Developer CLI](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/install-azd) and run 
 
-- Bash
+- Bash shell or Powershell
 
 **Deploy**
 
-In bash
 
-```sh
-(if using a browserless client)
+```
+(if using a browserless client, otherwise skip)
 azd auth login --use-device-code
-
-(if not logged in)
-az login
-
-(if not already installed)
-az bicep install 
-
-az bicep upgrade
 
 (to init the .azure folder env settings, follow the prompts, environment = rg name)
 azd init 
@@ -164,15 +155,20 @@ azd init
 azd up 
 ```
 
+if you encounter a bicep download related error during 'azd up'
+``` 
+az bicep install 
+
+az bicep upgrade
+```
+
 To access the app and use, see workload [README.md](./workload/README.md#check-system-is-running-correctly)
 
 You can also use /scripts/update-azure-workload.sh/ps1 to update the workload with your helm chart changes
 
 **Undeploy**
 
-In bash
-
-```sh
+```
 azd down
 ```
 

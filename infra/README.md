@@ -27,7 +27,7 @@ This is setup for ease of use/low cost trialing and scaling testing. Look at the
 ## Prereqs
 
 - Contributor role on target Azure subscription
-- Bash Shell OR Powershell 
+- Bash shell OR Powershell 
 - [AZ CLI installed](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest) and logged into azure (az login)
 - az bicep install
 - az bicep upgrade
