@@ -9,15 +9,27 @@ workflows:
       - azd: provision
 hooks:
   preprovision:
-    continueOnError: false
-    interactive: true
-    shell: sh
-    run: chmod +x azd-hooks/preprovision.sh && azd-hooks/preprovision.sh
+    windows:
+      shell: pwsh
+      run: azd-hooks/preprovision.ps1
+      continueOnError: false
+      interactive: true
+    posix:
+      shell: sh
+      run: chmod +x azd-hooks/preprovision.sh && azd-hooks/preprovision.sh
+      continueOnError: false
+      interactive: true
   postprovision:
-    continueOnError: false
-    interactive: true
-    shell: sh
-    run: chmod +x azd-hooks/postprovision.sh && azd-hooks/postprovision.sh
+    windows:
+      shell: pwsh
+      run: azd-hooks/postprovision.ps1
+      continueOnError: false
+      interactive: true
+    posix:
+      shell: sh
+      run: chmod +x azd-hooks/postprovision.sh && azd-hooks/postprovision.sh
+      continueOnError: false
+      interactive: true
 infra:
   provider: bicep
   path: infra
