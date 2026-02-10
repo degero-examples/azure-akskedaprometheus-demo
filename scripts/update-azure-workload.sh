@@ -6,7 +6,7 @@ export GREEN='\033[0;32m'
 export NC='\033[0m' # No Colorsource
 
 set -a
-source .env.azure
+source ./env.azure
 set +a
 
 
