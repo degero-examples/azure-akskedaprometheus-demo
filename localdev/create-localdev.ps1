@@ -45,7 +45,7 @@ try {
     }
     finally {
         Pop-Location
-        Set-Location ..\scripts
+        Set-Location ..\localdev
     }
 
     Write-Host ""
