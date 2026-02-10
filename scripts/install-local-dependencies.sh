@@ -12,10 +12,10 @@ check_and_install_command() {
             linux)
                 # Linux (including WSL)
                 if [ "$cmd" = "helm" ]; then
+                    sudo apt-get update && sudo apt-get install -y curl
                     curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
                     chmod 700 get_helm.sh
                     ./get_helm.sh
-                    rm -rf ./get_helm.sh
                 else
                     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
                     sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
@@ -40,4 +40,4 @@ check_and_install_command() {
 }
 
 check_and_install_command "helm" "helm" "Helm.Helm"
-check_and_install_command "kubectl" "kubectl" "Kubernetes.kubectl"
+check_and_install_command "kubectl" "kubectl" "kubectl"
