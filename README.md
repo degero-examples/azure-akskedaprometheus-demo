@@ -10,12 +10,12 @@
 
 
 This is a demonstration of a multi app (2) deployment in Kubernetes with KEDA autoscaling on prometheus metrics.
-It is also intentended to be used as a starter template to kickstart adapting a project and testing it locally for scaling needs.
+It is also intended to be used as a starter template to kickstart adapting a project and testing it locally for scaling needs.
 
 
 **Features include**
 
-- Ability to run locally (with Docker and KIND) to test your scaling needs without incuring hosting costs!
+- Ability to run locally (with Docker and KIND) to test your scaling needs without incurring hosting costs!
 - Two nginx app deployments (app-one, app-two) with files served from a persistent volume
 - Github token secret (for demonstration to follow to add your app secrets)
 - Metrics collection (Prometheus) using annotation based scrape rules
@@ -29,14 +29,14 @@ It is also intentended to be used as a starter template to kickstart adapting a 
 
 - AKS node autoscaler with VirtualMachineScaleSets 5m idle scaledown
 - Default workload nodepools scale to zero
-- Azure files for workload persistant volume with Low cost tier 2GB default (to allow multiple scaled pods to access)
+- Azure files for workload persistent volume with Low cost tier 2GB default (to allow multiple scaled pods to access)
 - AKS cluster, kubelet and KEDA user assigned identities for RBAC to resources (KEDA > Azure Monitor, Kublet > ACR, Cluster > VNET)
 - VNet/NSG (port 80:443) configuration for private network load balancer access instead of public nginx-ingress
 - Log analytics workspace for AKS log data collection
 - Azure monitor workspace for Prometheus metrics (metric gathering defaults on)
 - Azure Managed grafana for dashboards via Azure monitor (optional)
-- Azure Container Regsitry (optional)
-- AKS App routing addon (optional, there is a basic nginx ingress controller available by default. Requires a DNS A record to point to the ingress IP as it is not configurable to record metrics without a hostnae)
+- Azure Container Registry (optional)
+- AKS App routing addon (optional, there is a basic nginx ingress controller available by default. Requires a DNS A record to point to the ingress IP as it is not configurable to record metrics without a hostname)
 
 ## Folders
 
@@ -151,7 +151,7 @@ azd auth login --use-device-code
 (to init the .azure folder env settings, follow the prompts, environment = rg name)
 azd init 
 
-(to deploy, this will take several minutes then you will be prompted for a k8s workload paramter)
+(to deploy, this will take several minutes then you will be prompted for a k8s workload parameter)
 azd up 
 ```
 
@@ -195,20 +195,25 @@ If you enabled grafana during installation the Azure Monitor Prometheus metrics 
 
 #### Nginx ingress controller dashboards
 
-https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/grafana/dashboards/nginx.json
+[Nginx ingress - general grafana dashboard](https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/grafana/dashboards/nginx.json)
 
-https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/grafana/dashboards/request-handling-performance.json
+[Nginx ingress - request handling grafana dashboard](https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/grafana/dashboards/request-handling-performance.json)
 
 
-#### Nginx exportor metrics (when using VNET+load balancer 'enablePrivateNetwork=true')
+#### Nginx exporter metrics (when using VNET+load balancer 'enablePrivateNetwork=true')
 
-https://raw.githubusercontent.com/nginx/nginx-prometheus-exporter/refs/heads/main/grafana/dashboard.json
+[Nginx Prometheus exporter - grafana dashboard](https://raw.githubusercontent.com/nginx/nginx-prometheus-exporter/refs/heads/main/grafana/dashboard.json)
 
-https://grafana.com/grafana/dashboards/14900-nginx/
+[Grafana - nginx exporter dashboard](https://grafana.com/grafana/dashboards/14900-nginx/)
 
 
 #### KEDA metrics dashboard:
 
 When using, set the namespace to 'default'
 
-https://raw.githubusercontent.com/kedacore/keda/refs/heads/main/config/grafana/keda-dashboard.json
+[KEDA - dashboard.json](https://raw.githubusercontent.com/kedacore/keda/refs/heads/main/config/grafana/keda-dashboard.json)
+
+
+## Feedback
+
+All feedback is most welcome. Just drop in an issue or PR 😊
