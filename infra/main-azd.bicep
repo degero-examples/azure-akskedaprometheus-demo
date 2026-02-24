@@ -5,6 +5,11 @@ param location string
 
 @description('A name for your app to use in resource naming convention of <resourcetypecode>-<appname>-<envtype>')
 @maxLength(8)
+@metadata({
+  azd: {
+    default: 'akskeda'
+  }
+})
 param appname string
 
 @allowed(['dev', 'devtest','stage','test','uat','prod'])
