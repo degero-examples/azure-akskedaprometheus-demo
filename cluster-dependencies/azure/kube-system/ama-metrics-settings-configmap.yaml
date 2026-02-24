@@ -1,4 +1,4 @@
-# Prometheus collector config for AMA incl annotation based scrape namespce settings
+# Prometheus collector config for AMA incl annotation based scrape namespace settings
 # taken from https://github.com/Azure/prometheus-collector/blob/main/otelcollector/configmaps/ama-metrics-settings-configmap.yaml
 kind: ConfigMap
 apiVersion: v1

@@ -29,7 +29,7 @@ module vnet './vnet.bicep' = {
         networkSecurityGroupResourceId: nsg.outputs.id
       }
       {
-        // For higher envs its recommneded to be secured down with NSG/ASG
+        // For higher envs its recommended to be secured down with NSG/ASG
         name: 'virtualmachines'
         addressPrefix: '10.242.0.0/16'
       }

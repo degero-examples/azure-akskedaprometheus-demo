@@ -1,5 +1,5 @@
 #!/bin/bash
-# Deploy Azure infrastructre via bicep and write outputs to ../scripts/.env.auzre to deploy workload to cluster
+# Deploy Azure infrastructure via bicep and write outputs to ../scripts/.env.auzre to deploy workload to cluster
 
 set -euo pipefail
 
@@ -53,4 +53,4 @@ done
 
 echo "All environment variables written to /scripts/.env.azure"
 echo ""
-echo "Run /scripts/deploy-azure-workload.sh to deploy the dependencies and worklaod to AKS"
+echo "Run /scripts/deploy-azure-workload.sh to deploy the dependencies and workload to AKS"

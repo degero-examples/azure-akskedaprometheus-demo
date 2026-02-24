@@ -1,6 +1,6 @@
 # Kubernetes KEDA scaled demo application
 
-This demo K8S app is composed of two apps (app-one, app-two) both running nginx serving custom html pages for each located in the /workload/volume-data folder.  The deployment is configurable to use on a private network with load balancer or using a nginx ingress control to access the applications. There are other configuation options covered below to showcase some features to make use of.
+This demo K8S app is composed of two apps (app-one, app-two) both running nginx serving custom html pages for each located in the /workload/volume-data folder.  The deployment is configurable to use on a private network with load balancer or using a nginx ingress control to access the applications. There are other configuration options covered below to showcase some features to make use of.
 
 You have the option to deploy locally (covered below) using Docker and KIND to test your workload and scaling. 
 
@@ -24,12 +24,12 @@ Make adjustments (can be left as default) to the below base on what you set in y
 - PodAffinitity/AntiAffinity (Default: true. setting appOne/Two.enableAffinity to ensure one instance of app per node)
 - App Resources/Scale/ContainerImage settings (settings: appOne.*/appTwo.*)
 
-### values-azure-(ingress/lb).yaml (setttings specific to azure deployment)
+### values-azure-(ingress/lb).yaml (settings specific to azure deployment)
 
 - Private Network IPs for LoadBalanced apps on VNET (lbAppOne/Two.annotations)
 - Scale Query (appOne/appTwo.scaleQuery. To alter what metrics trigger pod scaling)
 
-### values-localdev-(ingress/lb).yaml (setttings specific to local KIND deployment)
+### values-localdev-(ingress/lb).yaml (settings specific to local KIND deployment)
 
 - Scale Query (appOne/appTwo.scaleQuery. To alter what metrics trigger pod scaling)
 
@@ -284,7 +284,7 @@ kubectl logs -l app.kubernetes.io/component=controller -n ingress-nginx (check c
 
 ### Internal load balancer IPs (when using privateNetwork option)
 
-There may be permissions missing fron NetworkContributor for the aks managed identity
+There may be permissions missing from NetworkContributor for the aks managed identity
 
 
 ```

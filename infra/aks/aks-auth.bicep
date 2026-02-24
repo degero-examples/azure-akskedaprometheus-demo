@@ -13,7 +13,7 @@ resource aksUserAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentiti
 var roleIds = loadJsonContent('../_defs/roles.json')
 
 // No AVM equivalent for scoping to a identity
-resource kubeletRoleAssignemnt 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+resource kubeletRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(clusterIdentityName, kubeletUserAssignedIdentity.name, 'Managed Identity Operator')
   scope: kubeletUserAssignedIdentity
   properties: {
