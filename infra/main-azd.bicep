@@ -3,7 +3,8 @@ targetScope = 'subscription'
 param environmentName string 
 param location string 
 
-@description('A name for you app to use resouce naming convention of <resourcetypecode>-<appname>-<envtype>')
+@description('A name for your app to use in resouce naming convention of <resourcetypecode>-<appname>-<envtype>')
+@maxLength(8)
 param appname string
 
 @allowed(['dev', 'devtest','stage','test','uat','prod'])

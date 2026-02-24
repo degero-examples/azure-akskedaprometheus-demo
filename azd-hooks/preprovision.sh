@@ -8,7 +8,7 @@ fi
 
 echo "Checking provider Microsoft.ContainerService is registered..."
 
-if [ "$(az provider show --namespace "Microsoft.CognitiveServices" --query "registrationState" -o tsv)" != "Registered" ]; then
+if [[ ! "$(az provider show --namespace "Microsoft.ContainerService" --query "registrationState" -o tsv)" =~ Registered ]]; then
     echo "Registering provider Microsoft.ContainerService..."
     az provider register --namespace "Microsoft.ContainerService"
     while [ "$(az provider show --namespace "Microsoft.ContainerService" --query "registrationState" -o tsv)" != "Registered" ]; do

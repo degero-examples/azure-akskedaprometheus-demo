@@ -69,4 +69,4 @@ helm upgrade --install kedascalerapp ../workload/chart --namespace default --cre
 
 echo -e "${GREEN}=== Installation complete! ===${NC}"
 echo -e ""
-echo -e "${GREEN}=== To remove cluster/deployment - run sh localdev/delete-localdev.sh ===${NC}"
+echo -e "${GREEN}=== To remove cluster/deployment - run sh ./localdev/delete-localdev.sh ===${NC}"

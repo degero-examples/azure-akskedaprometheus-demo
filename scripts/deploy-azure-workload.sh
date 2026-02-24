@@ -1,8 +1,10 @@
 #!/bin/bash
 # Installation script for Azure cluster dependencies workload with deployment apps of nginx, KEDA and Prometheus
 
+cd "$(dirname "$0")" || exit 1
+
 set -a
-source ./.env.azure
+. ./.env.azure
 set +a
 
 export GREEN='\033[0;32m'
@@ -80,6 +82,6 @@ if [ "${ACRRESOURCENAME:-}" != "" ]; then
   echo -e "Azure container registry hostname: $ACRRESOURCENAME.azurecr.io"
   echo -e ""
 fi
-echo -e "To update deployment - run update-azure-workload.sh ==="
+echo -e "To update deployment - run sh ./scripts/update-azure-workload.sh ==="
   echo -e ""
-echo -e "To remove deployment - run undeploy-azure-workload.sh ==="
+echo -e "To remove deployment - run sh ./scripts/undeploy-azure-workload.sh ==="

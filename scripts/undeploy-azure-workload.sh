@@ -1,12 +1,13 @@
 #!/bin/bash
 # Installation script for Azure workload with deployment apps of nginx, KEDA and Prometheus
+cd "$(dirname "$0")" || exit 1
 
 # Colors for output
 export GREEN='\033[0;32m'
 export NC='\033[0m' # No Colorsource
 
 set -a
-source .env.azure
+. ./.env.azure
 set +a
 
 # TODO move these to uninstall-dependencies.sh

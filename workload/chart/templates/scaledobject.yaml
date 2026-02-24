@@ -51,7 +51,7 @@ spec:
       serverAddress: {{ .Values.kedaPrometheusAccess.serverAddress | quote }}
       metricName: http_requests_total
       query: {{ .Values.appTwo.scaleQuery }} # Set query to return a vector/scalar single element response
-      threshold: {{ .Values.appOne.scaleThreshold | quote }}
+      threshold: {{ .Values.appTwo.scaleThreshold | quote }}
 {{- if .Values.kedaPrometheusAccess.authEnabled}}
     authenticationRef:
       name: azure-managed-prometheus-trigger-auth

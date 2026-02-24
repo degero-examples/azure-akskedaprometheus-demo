@@ -8,9 +8,6 @@
     "location": {
       "value": "${AZURE_LOCATION}"
     },
-    "appname":{
-      "value": "akskeda"
-    },
     "agentPoolMaxCount": {
       "value": 2
     },
