@@ -3,7 +3,7 @@ targetScope = 'subscription'
 param environmentName string 
 param location string 
 
-@description('A name for your app to use in resouce naming convention of <resourcetypecode>-<appname>-<envtype>')
+@description('A name for your app to use in resource naming convention of <resourcetypecode>-<appname>-<envtype>')
 @maxLength(8)
 @metadata({
   azd: {
@@ -13,7 +13,7 @@ param location string
 param appname string
 
 @allowed(['dev', 'devtest','stage','test','uat','prod'])
-@description('A name for the env type to use resouce naming convention of <resourcetypecode>-<appname>-<envtype>')
+@description('A name for the env type to use resource naming convention of <resourcetypecode>-<appname>-<envtype>')
 param envType string
 
 @description('Ingress via VNET with internal load balancer')
@@ -94,7 +94,7 @@ module main 'main.bicep' = {
     enableGrafana: enableGrafana
     enableContainerRegistry: enableContainerRegistry
     enableAKSAppRoutingAddon: enableAKSAppRoutingAddon
-    continerRegistrySku: 'Basic'
+    containerRegistrySku: 'Basic'
     nodePools: nodePools
     agentPoolMaxCount: agentPoolMaxCount
     clusterSKU: clusterSKU

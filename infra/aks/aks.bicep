@@ -11,14 +11,14 @@ param enableAKSAppRoutingAddon bool
 
 var location string = resourceGroup().location
 
-// AKS cluster User assigned identity cant use AVM due to bicep depencency syntax issue
+// AKS cluster User assigned identity cant use AVM due to bicep dependency syntax issue
 resource aksUserAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2025-01-31-preview' = {
   name: 'mi-${clustername}'
   location: location
   tags: tags
 }
 
-// Kubelenet User assigned identity
+// Kubelet User assigned identity
 module kubeletUserAssignedIdentity 'br/public:avm/res/managed-identity/user-assigned-identity:0.4.2' = {
   name: 'ident-avm-mi-kubelet-${clustername}'
   params: {
@@ -40,8 +40,8 @@ module kedaUserAssignedIdentity 'br/public:avm/res/managed-identity/user-assigne
 }
 
 // Assign Roles eg Managed Identity Operator to allow AKS to assign kubelet identity to nodes
-module kubeletRoleAssignemnt 'aks-auth.bicep' = {
-  name: 'kubeletRoleAssignemnt-${clustername}'
+module kubeletRoleAssignment 'aks-auth.bicep' = {
+  name: 'kubeletRoleAssignment-${clustername}'
   params: {
     clusterIdentityName: aksUserAssignedIdentity.name
     kubeletIdentityName: kubeletUserAssignedIdentity.outputs.name
@@ -53,7 +53,7 @@ var logworkspaceId = resourceId(resourceGroup().name, 'Microsoft.OperationalInsi
 // Bug with AVM and vnet not in MC rg, using regular resource.
 resource managedCluster 'Microsoft.ContainerService/managedClusters@2025-07-02-preview' = {
   name: clustername
-  dependsOn: [ kubeletRoleAssignemnt ]
+  dependsOn: [ kubeletRoleAssignment ]
   location: location
   tags: tags
   sku: {

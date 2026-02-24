@@ -21,7 +21,7 @@ param enableAKSAppRoutingAddon bool
   'Standard'
   'Premium'
 ])
-param continerRegistrySku string = 'Basic'
+param containerRegistrySku string = 'Basic'
 
 @description('Node pools configuration')
 param nodePools array
@@ -193,7 +193,7 @@ module azureMonitorAuth './observability/monitor-auth.bicep' = {
   }
 }
 
-// Alow aks cluster access to vnet
+// Allow aks cluster access to vnet
 module vnetAuth './networking/vnet-auth.bicep' = if (enablePrivateNetwork) {
   name: 'vnetAuth'
   dependsOn: [
@@ -212,7 +212,7 @@ module acr './acr/acr.bicep' = if (enableContainerRegistry) {
   name: 'acr'
   params: {
     name: acrResourceName
-    sku: continerRegistrySku
+    sku: containerRegistrySku
     tags: tags
     appname: appname
     env: env

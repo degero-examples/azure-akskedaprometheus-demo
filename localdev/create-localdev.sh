@@ -67,6 +67,6 @@ fi
 
 helm upgrade --install kedascalerapp ../workload/chart --namespace default --create-namespace -f ../workload/values-base.yaml -f ../workload/$values_file --set-string githubTokenSecret.token=$GITHUBTOKEN --set privateNetwork.enabled=$PRIVATE_NETWORK
 
-echo -e "${GREEN}=== Installiation complete! ===${NC}"
+echo -e "${GREEN}=== Installation complete! ===${NC}"
 echo -e ""
 echo -e "${GREEN}=== To remove cluster/deployment - run sh ./localdev/delete-localdev.sh ===${NC}"

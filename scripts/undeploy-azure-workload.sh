@@ -35,4 +35,4 @@ echo -e "${GREEN}=== Uninstalling workload ===${NC}"
 
 helm uninstall $APPNAME
 
-echo -e "${GREEN}=== Uninstalliation complete! ===${NC}"
+echo -e "${GREEN}=== Uninstallation complete! ===${NC}"
